@@ -375,6 +375,12 @@ static vpx_codec_err_t set_vp8e_config(VP8_CONFIG *oxcf,
         memcpy (oxcf->layer_id, cfg.ts_layer_id, sizeof(cfg.ts_layer_id));
     }
 
+/// <<<--A-->>> +++
+#if HAVE_CUDA_ENABLED_DEVICE
+	oxcf->cuda_me_enabled			= cfg.cuda_me_enabled;
+#endif
+/// <<<--A-->>> fine
+
 #if CONFIG_MULTI_RES_ENCODING
     /* When mr_cfg is NULL, oxcf->mr_total_resolutions and oxcf->mr_encoder_id
      * are both memset to 0, which ensures the correct logic under this

@@ -237,6 +237,12 @@ extern "C"
         unsigned int periodicity;
         unsigned int layer_id[VPX_TS_MAX_PERIODICITY];
 
+/// <<<--A-->>> +++
+#if HAVE_CUDA_ENABLED_DEVICE
+		int cuda_me_enabled;
+#endif
+/// <<<--A-->>> fine
+
 #if CONFIG_MULTI_RES_ENCODING
         /* Number of total resolutions encoded */
         unsigned int mr_total_resolutions;

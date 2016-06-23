@@ -1,0 +1,94 @@
+Cuda accelerated VP8 encoder based on libvpx
+Developed by Italtel and Universita' degli Studi di Milano, 2015-6
+Pietro Paglierani, Giuliano Grossi, Federico Pedersini and Alessandro Petrini
+
+
+---------------------
+  BUILD INSTRUCTION
+---------------------
+
+Directory test_build has been already per-configured for build on x86_64 Linux, so that the
+	make
+command would ideally be enough for compiling and linking
+
+Note that NVidia nvcc must be present in the system under the directory:
+/usr/local/cuda-7.5/bin/
+otherwise, modify the t_build/libs-x86_64-linux-gcc.mk and t_build/examples-x86_64-linux-gcc.mk
+accordingly.
+
+
+
+It is possible to create a working makefile from scratch using the standard configure; below are listed the required mods to the generated makefile, provided that a directory "t_build" has been made and the command:
+	../configure
+has been launched from there.
+
+
+---------------------------------------------
+vp8/vp8cx.mk:
+---------------------------------------------
+File has already been modified in order to include all the files in the cuda directory to the list of files to be compiled
+
+
+---------------------------------------------
+t_build/libs-x86_64-linux-gcc.mk:
+---------------------------------------------
+++ CXXCUDA=/usr/local/cuda-7.5/bin/nvcc
+
+-- LD=g++
+++ LD=/usr/local/cuda-7.5/bin/nvcc
+
+++ CXXCUDAFLAGS = --std c++11 -gencode arch=compute_52,code=compute_52 -gencode arch=compute_52,code=sm_52 -m 64 -DNDEBUG -O3
+or (depending on which compute capability)
+++ CXXCUDAFLAGS = --std c++11 -gencode arch=compute_52,code=compute_52 -gencode arch=compute_50,code=compute_50 -gencode arch=compute_35,code=compute_35 -gencode arch=compute_52,code=sm_52 -m 64 -DNDEBUG -O3
+
+-- LDFLAGS =  -m64
+++ LDFLAGS =  -link -m64
+
+---------------------------------------------
+t_build/examples-x86_64-linux-gcc.mk:
+---------------------------------------------
+-- LD=g++
+++ LD=/usr/local/cuda-7.5/bin/nvcc
+
+--------------------------------------
+t_build/Makefile:
+--------------------------------------
+-- CFLAGS+=-I$(BUILD_PFX)$(BUILD_ROOT) -I$(SRC_PATH)
+-- CXXFLAGS+=-I$(BUILD_PFX)$(BUILD_ROOT) -I$(SRC_PATH)
+++ CFLAGS+=-I$(BUILD_PFX)$(BUILD_ROOT) -I$(SRC_PATH) -I/usr/local/cuda-7.5/include
+++ CXXFLAGS+=-I$(BUILD_PFX)$(BUILD_ROOT) -I$(SRC_PATH) -I/usr/local/cuda-7.5/include
+++ CXXCUDAFLAGS+=-I$(BUILD_PFX)$(BUILD_ROOT) -I$(SRC_PATH) -I/usr/local/cuda-7.5/include
+
++++ <begin>
+$(BUILD_PFX)%.cu.d: %.cu
+	$(if $(quiet),@echo "    [DEP] $@")
+	$(qexec)mkdir -p $(dir $@)
+	$(qexec)$(CXXCUDA) $(INTERNAL_CFLAGS) $(CXXCUDAFLAGS) -M $< | $(fmt_deps) > $@
+
+$(BUILD_PFX)%.cu.o: %.cu
+	$(if $(quiet),@echo "    [NVCC] $@")
+	$(qexec)$(if $(CONFIG_DEPENDENCY_TRACKING),,mkdir -p $(dir $@))
+	$(qexec)$(CXXCUDA) $(INTERNAL_CFLAGS) $(CXXCUDAFLAGS) -c -o $@ $<
++++ <end>
+
+-- obj_pats=.c=.c.o $(AS_SFX)=$(AS_SFX).o .cc=.cc.o .cpp=.cpp.o
+++ obj_pats=.c=.c.o $(AS_SFX)=$(AS_SFX).o .cc=.cc.o .cpp=.cpp.o .cu=.cu.o
+
+-- $(qexec)$$(CXX) $$(strip $$(INTERNAL_LDFLAGS) $$(LDFLAGS) -o $$@ $(2) $(3) $$(extralibs))
+++ $(qexec)$$(LD) $$(strip $$(INTERNAL_LDFLAGS) $$(LDFLAGS) -o $$@ $(2) $(3) $$(extralibs))
+
+
+---------------------------------------------
+t_build/vpx_config.h:
+---------------------------------------------
+#define HAVE_CUDA_ENABLED_DEVICE 1
+#define HAVE_CUDA_MV_ITER 1
+
+
+
+
+------------------
+    DISCLAIMER
+------------------
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

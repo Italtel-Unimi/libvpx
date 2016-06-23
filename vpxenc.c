@@ -50,6 +50,14 @@
 #endif
 #include "./y4minput.h"
 
+/// <<<--A-->>> +++
+#if HAVE_CUDA_ENABLED_DEVICE
+#include "cuda/typedef_cuda.h"
+#include "cuda/init_cuda.h"
+#include "cuda/frame_cuda.h"
+#endif
+/// <<<--A-->>> fine
+
 /* Swallow warnings about unused results of fread/fwrite */
 static size_t wrap_fread(void *ptr, size_t size, size_t nmemb,
                          FILE *stream) {
@@ -357,10 +365,24 @@ static const arg_def_t token_parts = ARG_DEF(
     NULL, "token-parts", 1, "Number of token partitions to use, log2");
 static const arg_def_t screen_content_mode = ARG_DEF(
     NULL, "screen-content-mode", 1, "Screen content mode");
+
+/// <<<--A-->>> +++
+#if HAVE_CUDA_ENABLED_DEVICE
+static const arg_def_t cuda_me_arg = ARG_DEF(
+	NULL, "cuda-me", 1, "Enable CUDA accelerated Motion Estimation: 1 = fast; 2 = w/ splitmv; 3 = accurate" );
+#endif
+/// <<<--A-->>> fine
+
+
 static const arg_def_t *vp8_args[] = {
   &cpu_used_vp8, &auto_altref, &noise_sens, &sharpness, &static_thresh,
   &token_parts, &arnr_maxframes, &arnr_strength, &arnr_type,
   &tune_ssim, &cq_level, &max_intra_rate_pct, &screen_content_mode,
+/// <<<--A-->>> +++
+#if HAVE_CUDA_ENABLED_DEVICE
+  &cuda_me_arg,
+#endif
+/// <<<--A-->>> fine
   NULL
 };
 static const int vp8_arg_ctrl_map[] = {
@@ -1195,6 +1217,17 @@ static int parse_stream_params(struct VpxEncoderConfig *global,
         test_16bit_internal = 1;
       }
 #endif
+/// <<<--A-->>> +++
+#if HAVE_CUDA_ENABLED_DEVICE
+	} else if (arg_match( &arg, &cuda_me_arg, argi ))  {
+		config->cfg.cuda_me_enabled = arg_parse_uint(&arg);
+		if ((config->cfg.cuda_me_enabled < 0) | (config->cfg.cuda_me_enabled > 3)) {
+			warn("Invalid value for %s option. Using default fast kernel.\n", arg.name);
+			config->cfg.cuda_me_enabled = 1;
+		}
+		printf("Using CUDA accelerated motion estimation.\n");
+#endif
+/// <<<--A-->>> fine
     } else {
       int i, match = 0;
       for (i = 0; ctrl_args[i]; i++) {
@@ -1884,6 +1917,12 @@ int main(int argc, const char **argv_) {
   int stream_cnt = 0;
   int res = 0;
 
+/// <<<--A-->>> +++
+#if HAVE_CUDA_ENABLED_DEVICE
+  int cuda_initialized = 0;
+#endif
+/// <<<--A-->>> fine
+
   memset(&input, 0, sizeof(input));
   exec_name = argv_[0];
 
@@ -2077,6 +2116,19 @@ int main(int argc, const char **argv_) {
 
     frame_avail = 1;
     got_data = 0;
+
+/// <<<--A-->>> +++
+#if HAVE_CUDA_ENABLED_DEVICE
+    // check each stream and init only when it finds the first one with cuda-me enabled
+    FOREACH_STREAM(
+		if ( stream->config.cfg.cuda_me_enabled && (!cuda_initialized) ) {
+			// vedi anche "vp8_create_compressor"
+			init_cuda();
+			cuda_initialized = 1;
+		}
+    );
+#endif
+/// <<<--A-->>> fine
 
     while (frame_avail || got_data) {
       struct vpx_usec_timer timer;

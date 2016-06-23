@@ -35,6 +35,13 @@
 #endif
 #include "encodeframe.h"
 
+/// <<<--A-->>>
+#if HAVE_CUDA_ENABLED_DEVICE
+#include "cuda/frame_cuda.h"
+#include "cuda/typedef_cuda.h"
+#endif
+/// <<<--A-->>>
+
 extern void vp8_stuff_mb(VP8_COMP *cpi, MACROBLOCK *x, TOKENEXTRA **t) ;
 extern void vp8_calc_ref_frame_costs(int *ref_frame_cost,
                                      int prob_intra,

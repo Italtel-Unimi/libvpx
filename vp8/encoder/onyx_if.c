@@ -43,6 +43,16 @@
 #endif
 #include "encodeframe.h"
 
+/// <<<--A-->>>
+#if HAVE_CUDA_ENABLED_DEVICE
+#include "cuda/typedef_cuda.h"
+#include "cuda/frame_cuda.h"
+#include "cuda/me_cuda.h"
+#include "cuda/init_cuda.h"
+#include "misc/STATS.h"
+#endif
+/// <<<--A-->>>
+
 #include <math.h>
 #include <stdio.h>
 #include <limits.h>
@@ -2218,6 +2228,28 @@ struct VP8_COMP* vp8_create_compressor(VP8_CONFIG *oxcf)
     vp8_setup_block_ptrs(&cpi->mb);
     vp8_setup_block_dptrs(&cpi->mb.e_mbd);
 
+/// <<<--A-->>> +++
+#if HAVE_CUDA_ENABLED_DEVICE
+    if ( cpi->oxcf.cuda_me_enabled > 0 ) {
+		cm->gpu_frame.width = oxcf->Width; //raw.w;
+		cm->gpu_frame.height = oxcf->Height; //raw.h;
+		cm->gpu_frame.stride = oxcf->Width + 64; //raw.w+64;
+		cm->gpu_frame.height_ext = oxcf->Height + 64; //raw.h+64;
+
+		cm->cuda_me_enabled = cpi->oxcf.cuda_me_enabled;
+
+		GPU_setup( &(cm->GPU), cm->gpu_frame.width, cm->gpu_frame.height );
+
+		memory_setup_CPU_GPU( cm );
+
+		//if ((cpi->oxcf.cuda_me_enabled == ME_FAST_KERNEL) | (cpi->oxcf.cuda_me_enabled == ME_SPLITMV_KERNEL))
+		setup_constant_mem_fast(cm->gpu_frame.stride);
+		setup_constant_mem_split(cm->gpu_frame.stride);
+
+    }
+#endif
+/// <<<--A-->>> fine
+
     return  cpi;
 }
 
@@ -2505,6 +2537,14 @@ void vp8_remove_compressor(VP8_COMP **ptr)
     vpx_free(cpi->cyclic_refresh_map);
     vpx_free(cpi->consec_zero_last);
     vpx_free(cpi->consec_zero_last_mvbias);
+
+#if HAVE_CUDA_ENABLED_DEVICE
+    if ( cpi->oxcf.cuda_me_enabled ) {
+    	printf("\nDeallocating CUDA stuff...\n");
+    	GPU_destroy( &(cpi->common) );
+    	printf("Done deallocating\n");
+    }
+#endif
 
     vp8_remove_common(&cpi->common);
     vpx_free(cpi);
@@ -4360,6 +4400,34 @@ static void encode_frame_to_data_rate
             vp8_setup_key_frame(cpi);
         }
 
+
+/// <<<--A-->>>
+#if HAVE_CUDA_ENABLED_DEVICE
+        if ((cpi->common.frame_type != KEY_FRAME) && (cpi->oxcf.cuda_me_enabled > 0)) {
+
+        	switch (cpi->oxcf.cuda_me_enabled) {
+        		case ME_TEX_KERNEL:
+        			me_cuda_launch_interleaved_tex( &(cpi->common), cpi->common.lst_fb_idx, cpi->ref_frame_flags );
+        			break;
+        		case ME_FAST_KERNEL:
+        			me_cuda_launch_interleaved_fast( &(cpi->common), cpi->common.lst_fb_idx, cpi->ref_frame_flags );
+        			break;
+        		case ME_SPLITMV_KERNEL:
+        			me_cuda_launch_interleaved_split( &(cpi->common), cpi->common.lst_fb_idx, cpi->ref_frame_flags );
+        			break;
+        		default:
+        			break;
+        	}
+        }
+
+
+      /*  if ((cpi->oxcf.cuda_me_enabled) && (cpi->common.frame_type != KEY_FRAME))
+        	me_cuda_launch_interleaved_tex( &(cpi->common), cpi->common.lst_fb_idx, cpi->ref_frame_flags );*/
+#endif
+/// <<<--A-->>> fine
+
+
+
 #if CONFIG_REALTIME_ONLY & CONFIG_ONTHEFLY_BITPACKING
         {
             if(cpi->oxcf.error_resilient_mode)
@@ -4832,6 +4900,29 @@ static void encode_frame_to_data_rate
         vp8_loopfilter_frame(cpi, cm);
     }
 
+
+/// <<<--A-->>>
+#if HAVE_CUDA_ENABLED_DEVICE
+    if ( cpi->oxcf.cuda_me_enabled ) {
+		YV12_BUFFER_CONFIG *yv12_fb = cpi->common.yv12_fb;
+		unsigned char *y_plane_LAST_FRAME = yv12_fb[cpi->common.new_fb_idx].y_buffer - 32 * (yv12_fb[cpi->common.new_fb_idx].y_stride + 1);
+
+		switch (cpi->oxcf.cuda_me_enabled) {
+			case ME_TEX_KERNEL:
+				copy_new_frame_to_GPU_tex( &(cpi->common), y_plane_LAST_FRAME, cpi->common.new_fb_idx );
+				break;
+			case ME_FAST_KERNEL:
+			case ME_SPLITMV_KERNEL:
+				copy_new_frame_to_GPU( &(cpi->common), y_plane_LAST_FRAME, cpi->common.new_fb_idx );
+				break;
+			default:
+				break;
+		}
+
+    }
+#endif
+/// <<<--A-->>>
+
     update_reference_frames(cpi);
 
 #ifdef OUTPUT_YUV_DENOISED
@@ -5251,6 +5342,24 @@ int vp8_receive_raw_frame(VP8_COMP *cpi, unsigned int frame_flags, YV12_BUFFER_C
         res = -1;
     vpx_usec_timer_mark(&timer);
     cpi->time_receive_data += vpx_usec_timer_elapsed(&timer);
+
+/// <<<--A-->>>
+#if HAVE_CUDA_ENABLED_DEVICE
+    if ((cpi->oxcf.cuda_me_enabled) && (cpi->common.frame_type != KEY_FRAME)) {
+    	switch (cpi->oxcf.cuda_me_enabled) {
+			case ME_TEX_KERNEL:
+				copy_raw_frame_to_GPU_tex( &(cpi->common), sd->y_buffer );
+				break;
+			case ME_FAST_KERNEL:
+			case ME_SPLITMV_KERNEL:
+				copy_raw_frame_to_GPU( &(cpi->common), sd->y_buffer );
+				break;
+			default:
+				break;
+		}
+    }
+#endif
+/// <<<--A-->>>
 
     return res;
 }

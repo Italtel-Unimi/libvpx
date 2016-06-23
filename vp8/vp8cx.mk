@@ -75,6 +75,17 @@ VP8_CX_SRCS-yes += encoder/temporal_filter.c
 VP8_CX_SRCS-$(CONFIG_MULTI_RES_ENCODING) += encoder/mr_dissim.c
 VP8_CX_SRCS-$(CONFIG_MULTI_RES_ENCODING) += encoder/mr_dissim.h
 
+VP8_CX_SRCS-yes += ../cuda/typedef_cuda.h
+VP8_CX_SRCS-yes += ../cuda/define_cuda.h
+VP8_CX_SRCS-yes += ../cuda/init_cuda.h
+VP8_CX_SRCS-yes += ../cuda/init_cuda.cu
+VP8_CX_SRCS-yes += ../cuda/frame_cuda.h
+VP8_CX_SRCS-yes += ../cuda/frame_cuda.cu
+VP8_CX_SRCS-yes += ../cuda/me_cuda.h
+VP8_CX_SRCS-yes += ../cuda/me_cuda.cu
+VP8_CX_SRCS-yes += ../cuda/me_cuda2.cu
+VP8_CX_SRCS-yes += ../cuda/me_cuda3.cu
+
 ifeq ($(CONFIG_REALTIME_ONLY),yes)
 VP8_CX_SRCS_REMOVE-yes += encoder/firstpass.c
 VP8_CX_SRCS_REMOVE-yes += encoder/temporal_filter.c

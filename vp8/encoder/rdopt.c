@@ -38,6 +38,15 @@
 #if CONFIG_TEMPORAL_DENOISING
 #include "denoising.h"
 #endif
+
+/// <<<--A-->>> +++
+#if HAVE_CUDA_ENABLED_DEVICE
+#include "cuda/typedef_cuda.h"
+#include "cuda/frame_cuda.h"
+#include "cuda/me_cuda.h"
+#endif
+/// <<<--A-->>> fine
+
 extern void vp8_update_zbin_extra(VP8_COMP *cpi, MACROBLOCK *x);
 
 #define MAXF(a,b)            (((a) > (b)) ? (a) : (b))
@@ -1182,6 +1191,12 @@ static void rd_check_segment(VP8_COMP *cpi, MACROBLOCK *x,
 
             if (this_mode == NEW4X4)
             {
+/// <<<--A-->>> +++
+#if HAVE_CUDA_ENABLED_DEVICE
+            	// Questo deve girare se viene richiesta ME su cpu
+                if (cpi->oxcf.cuda_me_enabled == 0) {
+#endif
+/// <<<--A-->>> fine
                 int sseshift;
                 int num00;
                 int step_param = 0;
@@ -1304,6 +1319,43 @@ static void rd_check_segment(VP8_COMP *cpi, MACROBLOCK *x,
                         bsi->ref_mv, x->errorperbit, v_fn_ptr, x->mvcost,
                         &disto, &sse);
                 }
+
+
+/// <<<--A-->>> +++
+#if HAVE_CUDA_ENABLED_DEVICE
+                	} else if (cpi->oxcf.cuda_me_enabled > 1) {
+						int mb_row, mb_col, mb_offset, delta, streamID;
+						MV mv_from_gpu;
+
+						mb_row = cpi->common.gpu_frame.mbrow;
+						mb_col = cpi->common.gpu_frame.mbcol;
+						streamID = (mb_row * cpi->common.gpu_frame.num_MB_width + mb_col) >> 4;     // streamID to sync
+						GPU_sync_stream_frame(&(cpi->common), streamID);      // sync on next stream
+
+						mb_offset = mb_row*cpi->common.mb_cols+mb_col;
+						delta = 0;  //BLOCK_4x4
+						switch (segmentation) {
+							case BLOCK_8X8:
+								delta = 16;
+								break;
+							case BLOCK_8X16:
+								delta = 20;
+								break;
+							case BLOCK_16X8:
+								delta = 22;
+								break;
+							default:
+								delta = 0;
+						}
+						// Considero solo splitmv di last frame
+						mv_from_gpu = (cpi->common.host_frame.MVs_split_h)[24*mb_offset + delta + i].as_mv;
+						mode_mv[NEW4X4].as_mv.row = mv_from_gpu.row;
+						mode_mv[NEW4X4].as_mv.col = mv_from_gpu.col;
+                  }
+#endif
+/// <<<--A-->>> fine
+
+
             } /* NEW4X4 */
 
             rate = labels2mode(x, labels, i, this_mode, &mode_mv[this_mode],
@@ -2023,6 +2075,13 @@ void vp8_rd_pick_inter_mode(VP8_COMP *cpi, MACROBLOCK *x, int recon_yoffset,
 
     x->skip = 0;
 
+    if (cpi->oxcf.cuda_me_enabled == ME_FAST_KERNEL) {
+    	x->rd_threshes[16] = INT_MAX;
+		x->rd_threshes[17] = INT_MAX;
+		x->rd_threshes[18] = INT_MAX;
+    }
+
+
     for (mode_index = 0; mode_index < MAX_MODES; mode_index++)
     {
         int this_rd = INT_MAX;
@@ -2186,6 +2245,16 @@ void vp8_rd_pick_inter_mode(VP8_COMP *cpi, MACROBLOCK *x, int recon_yoffset,
             this_rd_thresh = (vp8_ref_frame_order[mode_index] == 2) ?
                 x->rd_threshes[THR_NEW2] : this_rd_thresh;
 
+/// <<<--A-->>> +++
+#if HAVE_CUDA_ENABLED_DEVICE
+        	if ( cpi->oxcf.cuda_me_enabled ) {
+                cpi->common.gpu_frame.mbrow = mb_row;
+                cpi->common.gpu_frame.mbcol = mb_col;
+                cpi->common.gpu_frame.refframe = vp8_ref_frame_order[mode_index];
+            }
+#endif
+/// <<<--A-->>> fine
+
             tmp_rd = vp8_rd_pick_best_mbsegmentation(cpi, x, &best_ref_mv,
                                                      best_mode.yrd, mdcounts,
                                                      &rate, &rd.rate_y, &distortion, this_rd_thresh) ;
@@ -2237,6 +2306,11 @@ void vp8_rd_pick_inter_mode(VP8_COMP *cpi, MACROBLOCK *x, int recon_yoffset,
 
         case NEWMV:
         {
+/// <<<--A-->>> +++
+#if HAVE_CUDA_ENABLED_DEVICE
+        	if ( !(cpi->oxcf.cuda_me_enabled) ) {
+#endif
+/// <<<--A-->>> fine
             int thissme;
             int bestsme = INT_MAX;
             int step_param = cpi->sf.first_step;
@@ -2375,6 +2449,39 @@ void vp8_rd_pick_inter_mode(VP8_COMP *cpi, MACROBLOCK *x, int recon_yoffset,
 
             /* Add the new motion vector cost to our rolling cost variable */
             rd.rate2 += vp8_mv_bit_cost(&mode_mv[NEWMV], &best_ref_mv, x->mvcost, 96);
+
+/// <<<--A-->>> +++
+#if HAVE_CUDA_ENABLED_DEVICE
+        	} else {
+                int streamID, mb_offset;
+                int_mv mv_from_gpu;
+                
+				streamID = (mb_row * cpi->common.gpu_frame.num_MB_width + mb_col) >> 4;     // streamID to sync
+				GPU_sync_stream_frame(&(cpi->common), streamID);      // sync on next stream
+				mb_offset = mb_row*cpi->common.mb_cols+mb_col;
+
+				switch (vp8_ref_frame_order[mode_index]) {
+					case LAST_FRAME:
+						mv_from_gpu = (cpi->common.host_frame.MVs_h)[0][mb_offset];
+						break;
+					case GOLDEN_FRAME:
+						mv_from_gpu = (cpi->common.host_frame.MVs_h)[1][mb_offset];
+						break;
+					case ALTREF_FRAME:
+						mv_from_gpu = (cpi->common.host_frame.MVs_h)[2][mb_offset];
+						break;
+					default:
+                        mv_from_gpu.as_int = 0;
+						printf("Oh, no!\n");
+				}
+
+				mode_mv[NEWMV] = mv_from_gpu;
+
+				rd.rate2 += vp8_mv_bit_cost( &mode_mv[NEWMV], &best_ref_mv, x->mvcost, 96 );
+				/// <<<--A-->>> +++
+        	}
+#endif
+/// <<<--A-->>> fine
         }
 
         case NEARESTMV:
