@@ -15,7 +15,7 @@
 #include "vpx_config.h"
 #include "cuda/frame_cuda.h"
 #include "cuda/me_cuda.h"
-#include "misc/STATS.h"
+//#include "misc/STATS.h"
 
 #ifdef __cplusplus
 extern "C" {

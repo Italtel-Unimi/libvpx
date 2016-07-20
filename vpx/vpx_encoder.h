@@ -748,19 +748,16 @@ extern "C" {
      *
      */
     int                    temporal_layering_mode;
-
-/// <<<--A-->>> +++
-	/*!\brief Enables CUDA accelerated motion estimation
-	*
-	* If > 0, enables CUDA accelerated motion estimation algorithm developed by UNIMI.
-	* Currently, it only works for VP8 encoder and for single stream operations.
-	* = 1: fast kernel     (no splitmv, only integer mv)
-	* = 2: splitmv kernel  (only integer mv)
-	* = 3: accurate kernel (full featured ME kernel - slower)
-	*/
-	int						cuda_me_enabled;
-/// <<<--A-->>> fine
-
+    
+    /*!\brief Enables CUDA accelerated motion estimation
+    *
+    * If > 0, enables CUDA accelerated motion estimation algorithm developed by UNIMI.
+    * Currently, it only works for VP8 encoder and for single stream operations.
+    * = 1: fast kernel     (no splitmv, only integer mv)
+    * = 2: splitmv kernel  (only integer mv)
+    * = 3: accurate kernel (full featured ME kernel - slower)
+    */
+    int						cuda_me_enabled;
   } vpx_codec_enc_cfg_t; /**< alias for struct vpx_codec_enc_cfg */
 
   /*!\brief  vp9 svc extra configure parameters
@@ -1053,4 +1050,3 @@ extern "C" {
 }
 #endif
 #endif  // VPX_VPX_ENCODER_H_
-

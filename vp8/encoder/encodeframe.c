@@ -34,19 +34,9 @@
 #endif
 #include "encodeframe.h"
 
-/// <<<--A-->>>
-#if HAVE_CUDA_ENABLED_DEVICE
-#include "cuda/frame_cuda.h"
-#include "cuda/typedef_cuda.h"
-#endif
-/// <<<--A-->>>
-
-extern void vp8_stuff_mb(VP8_COMP *cpi, MACROBLOCK *x, TOKENEXTRA **t) ;
-extern void vp8_calc_ref_frame_costs(int *ref_frame_cost,
-                                     int prob_intra,
-                                     int prob_last,
-                                     int prob_garf
-                                    );
+extern void vp8_stuff_mb(VP8_COMP *cpi, MACROBLOCK *x, TOKENEXTRA **t);
+extern void vp8_calc_ref_frame_costs(int *ref_frame_cost, int prob_intra,
+                                     int prob_last, int prob_garf);
 extern void vp8_convert_rfct_to_prob(VP8_COMP *const cpi);
 extern void vp8cx_initialize_me_consts(VP8_COMP *cpi, int QIndex);
 extern void vp8_auto_select_speed(VP8_COMP *cpi);

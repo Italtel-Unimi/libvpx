@@ -42,15 +42,12 @@
 #endif
 #include "encodeframe.h"
 
-/// <<<--A-->>>
 #if HAVE_CUDA_ENABLED_DEVICE
 #include "cuda/typedef_cuda.h"
 #include "cuda/frame_cuda.h"
 #include "cuda/me_cuda.h"
 #include "cuda/init_cuda.h"
-#include "misc/STATS.h"
 #endif
-/// <<<--A-->>>
 
 #include <math.h>
 #include <stdio.h>
@@ -2057,29 +2054,27 @@ struct VP8_COMP *vp8_create_compressor(VP8_CONFIG *oxcf) {
   vp8_setup_block_ptrs(&cpi->mb);
   vp8_setup_block_dptrs(&cpi->mb.e_mbd);
 
-/// <<<--A-->>> +++
 #if HAVE_CUDA_ENABLED_DEVICE
-    if ( cpi->oxcf.cuda_me_enabled > 0 ) {
-		cm->gpu_frame.width = oxcf->Width; //raw.w;
-		cm->gpu_frame.height = oxcf->Height; //raw.h;
-		cm->gpu_frame.stride = oxcf->Width + 64; //raw.w+64;
-		cm->gpu_frame.height_ext = oxcf->Height + 64; //raw.h+64;
+  if ( cpi->oxcf.cuda_me_enabled > 0 ) {
+	cm->gpu_frame.width = oxcf->Width; //raw.w;
+	cm->gpu_frame.height = oxcf->Height; //raw.h;
+	cm->gpu_frame.stride = oxcf->Width + 64; //raw.w+64;
+	cm->gpu_frame.height_ext = oxcf->Height + 64; //raw.h+64;
 
-		cm->cuda_me_enabled = cpi->oxcf.cuda_me_enabled;
+	cm->cuda_me_enabled = cpi->oxcf.cuda_me_enabled;
 
-		GPU_setup( &(cm->GPU), cm->gpu_frame.width, cm->gpu_frame.height );
+	GPU_setup( &(cm->GPU), cm->gpu_frame.width, cm->gpu_frame.height );
 
-		memory_setup_CPU_GPU( cm );
+	memory_setup_CPU_GPU( cm );
 
-		//if ((cpi->oxcf.cuda_me_enabled == ME_FAST_KERNEL) | (cpi->oxcf.cuda_me_enabled == ME_SPLITMV_KERNEL))
-		setup_constant_mem_fast(cm->gpu_frame.stride);
-		setup_constant_mem_split(cm->gpu_frame.stride);
+	//if ((cpi->oxcf.cuda_me_enabled == ME_FAST_KERNEL) | (cpi->oxcf.cuda_me_enabled == ME_SPLITMV_KERNEL))
+	setup_constant_mem_fast(cm->gpu_frame.stride);
+	setup_constant_mem_split(cm->gpu_frame.stride);
 
-    }
+  }
 #endif
-/// <<<--A-->>> fine
 
-    return  cpi;
+  return cpi;
 }
 
 void vp8_remove_compressor(VP8_COMP **ptr) {
@@ -2313,9 +2308,9 @@ void vp8_remove_compressor(VP8_COMP **ptr) {
     }
 #endif
 
-    vp8_remove_common(&cpi->common);
-    vpx_free(cpi);
-    *ptr = 0;
+  vp8_remove_common(&cpi->common);
+  vpx_free(cpi);
+  *ptr = 0;
 
 #ifdef OUTPUT_YUV_SRC
   fclose(yuv_file);
@@ -3982,33 +3977,9 @@ static void encode_frame_to_data_rate(VP8_COMP *cpi, unsigned long *size,
         vp8_set_quantizer(cpi, Q);
       }
 
-        if (cm->frame_type == KEY_FRAME)
-        {
-            if(resize_key_frame(cpi))
-            {
-              /* If the frame size has changed, need to reset Q, quantizer,
-               * and background refresh.
-               */
-              Q = vp8_regulate_q(cpi, cpi->this_frame_target);
-              if (cpi->cyclic_refresh_mode_enabled)
-              {
-                if (cpi->current_layer==0)
-                  cyclic_background_refresh(cpi, Q, 0);
-                else
-                  disable_segmentation(cpi);
-              }
-              // Reset the zero_last counter to 0 on key frame.
-              memset(cpi->consec_zero_last, 0, cm->mb_rows * cm->mb_cols);
-              memset(cpi->consec_zero_last_mvbias, 0,
-                     (cpi->common.mb_rows * cpi->common.mb_cols));
-              vp8_set_quantizer(cpi, Q);
-            }
+      vp8_setup_key_frame(cpi);
+    }
 
-            vp8_setup_key_frame(cpi);
-        }
-
-
-/// <<<--A-->>>
 #if HAVE_CUDA_ENABLED_DEVICE
         if ((cpi->common.frame_type != KEY_FRAME) && (cpi->oxcf.cuda_me_enabled > 0)) {
 
@@ -4031,9 +4002,6 @@ static void encode_frame_to_data_rate(VP8_COMP *cpi, unsigned long *size,
       /*  if ((cpi->oxcf.cuda_me_enabled) && (cpi->common.frame_type != KEY_FRAME))
         	me_cuda_launch_interleaved_tex( &(cpi->common), cpi->common.lst_fb_idx, cpi->ref_frame_flags );*/
 #endif
-/// <<<--A-->>> fine
-
-
 
 #if CONFIG_REALTIME_ONLY & CONFIG_ONTHEFLY_BITPACKING
     {
@@ -4488,8 +4456,6 @@ static void encode_frame_to_data_rate(VP8_COMP *cpi, unsigned long *size,
     vp8_loopfilter_frame(cpi, cm);
   }
 
-
-/// <<<--A-->>>
 #if HAVE_CUDA_ENABLED_DEVICE
     if ( cpi->oxcf.cuda_me_enabled ) {
 		YV12_BUFFER_CONFIG *yv12_fb = cpi->common.yv12_fb;
@@ -4509,9 +4475,8 @@ static void encode_frame_to_data_rate(VP8_COMP *cpi, unsigned long *size,
 
     }
 #endif
-/// <<<--A-->>>
 
-    update_reference_frames(cpi);
+  update_reference_frames(cpi);
 
 #ifdef OUTPUT_YUV_DENOISED
   vp8_write_yuv_frame(yuv_denoised_file,
@@ -4911,7 +4876,6 @@ int vp8_receive_raw_frame(VP8_COMP *cpi, unsigned int frame_flags,
   vpx_usec_timer_mark(&timer);
   cpi->time_receive_data += vpx_usec_timer_elapsed(&timer);
 
-/// <<<--A-->>>
 #if HAVE_CUDA_ENABLED_DEVICE
     if ((cpi->oxcf.cuda_me_enabled) && (cpi->common.frame_type != KEY_FRAME)) {
     	switch (cpi->oxcf.cuda_me_enabled) {
@@ -4927,9 +4891,8 @@ int vp8_receive_raw_frame(VP8_COMP *cpi, unsigned int frame_flags,
 		}
     }
 #endif
-/// <<<--A-->>>
 
-    return res;
+  return res;
 }
 
 static int frame_is_reference(const VP8_COMP *cpi) {

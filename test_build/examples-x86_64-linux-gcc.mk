@@ -17,14 +17,13 @@ MSVS_ARCH_DIR=
 CC=gcc
 CXX=g++
 AR=ar
-#LD=g++
 LD=/usr/local/cuda-7.5/bin/nvcc
 AS=yasm
 STRIP=strip
 NM=nm
 
-CFLAGS  =  -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wimplicit-function-declaration -Wuninitialized -Wunused-variable -Wunused-but-set-variable -Wunused-function
-CXXFLAGS  =  -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wuninitialized -Wunused-variable -Wunused-but-set-variable -Wunused-function
+CFLAGS  =  -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wimplicit-function-declaration -Wuninitialized -Wunused
+CXXFLAGS  =  -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wuninitialized -Wunused
 ARFLAGS = -crs$(if $(quiet),,v)
 LDFLAGS =  -m64
 ASFLAGS =  -f elf64
@@ -49,7 +48,6 @@ HAVE_UNISTD_H=yes
 CONFIG_DEPENDENCY_TRACKING=yes
 CONFIG_INSTALL_BINS=yes
 CONFIG_INSTALL_LIBS=yes
-CONFIG_USE_X86INC=yes
 CONFIG_GCC=yes
 CONFIG_RUNTIME_CPU_DETECT=yes
 CONFIG_POSTPROC=yes

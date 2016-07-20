@@ -38,13 +38,11 @@
 #include "denoising.h"
 #endif
 
-/// <<<--A-->>> +++
 #if HAVE_CUDA_ENABLED_DEVICE
 #include "cuda/typedef_cuda.h"
 #include "cuda/frame_cuda.h"
 #include "cuda/me_cuda.h"
 #endif
-/// <<<--A-->>> fine
 
 extern void vp8_update_zbin_extra(VP8_COMP *cpi, MACROBLOCK *x);
 
@@ -1020,6 +1018,10 @@ static void rd_check_segment(VP8_COMP *cpi, MACROBLOCK *x, BEST_SEG_INFO *bsi,
       tl_s = (ENTROPY_CONTEXT *)&t_left_s;
 
       if (this_mode == NEW4X4) {
+#if HAVE_CUDA_ENABLED_DEVICE
+            	// Questo deve girare se viene richiesta ME su cpu
+                if (cpi->oxcf.cuda_me_enabled == 0) {
+#endif
         int sseshift;
         int num00;
         int step_param = 0;
@@ -1036,24 +1038,12 @@ static void rd_check_segment(VP8_COMP *cpi, MACROBLOCK *x, BEST_SEG_INFO *bsi,
          */
         if (best_label_rd < label_mv_thresh) break;
 
-            if (this_mode == NEW4X4)
-            {
-/// <<<--A-->>> +++
-#if HAVE_CUDA_ENABLED_DEVICE
-            	// Questo deve girare se viene richiesta ME su cpu
-                if (cpi->oxcf.cuda_me_enabled == 0) {
-#endif
-/// <<<--A-->>> fine
-                int sseshift;
-                int num00;
-                int step_param = 0;
-                int further_steps;
-                int n;
-                int thissme;
-                int bestsme = INT_MAX;
-                int_mv  temp_mv;
-                BLOCK *c;
-                BLOCKD *e;
+        if (cpi->compressor_speed) {
+          if (segmentation == BLOCK_8X16 || segmentation == BLOCK_16X8) {
+            bsi->mvp.as_int = bsi->sv_mvp[i].as_int;
+            if (i == 1 && segmentation == BLOCK_16X8) {
+              bsi->mvp.as_int = bsi->sv_mvp[2].as_int;
+            }
 
             step_param = bsi->sv_istep[i];
           }
@@ -1141,22 +1131,7 @@ static void rd_check_segment(VP8_COMP *cpi, MACROBLOCK *x, BEST_SEG_INFO *bsi,
                                        x->errorperbit, v_fn_ptr, x->mvcost,
                                        &disto, &sse);
         }
-      } /* NEW4X4 */
 
-      rate = labels2mode(x, labels, i, this_mode, &mode_mv[this_mode],
-                         bsi->ref_mv, x->mvcost);
-
-                if (bestsme < INT_MAX)
-                {
-                    int disto;
-                    unsigned int sse;
-                    cpi->find_fractional_mv_step(x, c, e, &mode_mv[NEW4X4],
-                        bsi->ref_mv, x->errorperbit, v_fn_ptr, x->mvcost,
-                        &disto, &sse);
-                }
-
-
-/// <<<--A-->>> +++
 #if HAVE_CUDA_ENABLED_DEVICE
                 	} else if (cpi->oxcf.cuda_me_enabled > 1) {
 						int mb_row, mb_col, mb_offset, delta, streamID;
@@ -1188,10 +1163,19 @@ static void rd_check_segment(VP8_COMP *cpi, MACROBLOCK *x, BEST_SEG_INFO *bsi,
 						mode_mv[NEW4X4].as_mv.col = mv_from_gpu.col;
                   }
 #endif
-/// <<<--A-->>> fine
 
+      } /* NEW4X4 */
 
-            } /* NEW4X4 */
+      rate = labels2mode(x, labels, i, this_mode, &mode_mv[this_mode],
+                         bsi->ref_mv, x->mvcost);
+
+      /* Trap vectors that reach beyond the UMV borders */
+      if (((mode_mv[this_mode].as_mv.row >> 3) < x->mv_row_min) ||
+          ((mode_mv[this_mode].as_mv.row >> 3) > x->mv_row_max) ||
+          ((mode_mv[this_mode].as_mv.col >> 3) < x->mv_col_min) ||
+          ((mode_mv[this_mode].as_mv.col >> 3) > x->mv_col_max)) {
+        continue;
+      }
 
       distortion = vp8_encode_inter_mb_segment(x, labels, i) / 4;
 
@@ -1872,6 +1856,14 @@ void vp8_rd_pick_inter_mode(VP8_COMP *cpi, MACROBLOCK *x, int recon_yoffset,
 
   x->skip = 0;
 
+  #if HAVE_CUDA_ENABLED_DEVICE
+      if (cpi->oxcf.cuda_me_enabled == ME_FAST_KERNEL) {
+      	x->rd_threshes[16] = INT_MAX;
+  		x->rd_threshes[17] = INT_MAX;
+  		x->rd_threshes[18] = INT_MAX;
+      }
+  #endif
+
   for (mode_index = 0; mode_index < MAX_MODES; ++mode_index) {
     int this_rd = INT_MAX;
     int disable_skip = 0;
@@ -2023,7 +2015,6 @@ void vp8_rd_pick_inter_mode(VP8_COMP *cpi, MACROBLOCK *x, int recon_yoffset,
                              ? x->rd_threshes[THR_NEW2]
                              : this_rd_thresh;
 
-/// <<<--A-->>> +++
 #if HAVE_CUDA_ENABLED_DEVICE
         	if ( cpi->oxcf.cuda_me_enabled ) {
                 cpi->common.gpu_frame.mbrow = mb_row;
@@ -2031,7 +2022,10 @@ void vp8_rd_pick_inter_mode(VP8_COMP *cpi, MACROBLOCK *x, int recon_yoffset,
                 cpi->common.gpu_frame.refframe = vp8_ref_frame_order[mode_index];
             }
 #endif
-/// <<<--A-->>> fine
+
+        tmp_rd = vp8_rd_pick_best_mbsegmentation(
+            cpi, x, &best_ref_mv, best_mode.yrd, mdcounts, &rate, &rd.rate_y,
+            &distortion, this_rd_thresh);
 
         rd.rate2 += rate;
         rd.distortion2 += distortion;
@@ -2072,20 +2066,21 @@ void vp8_rd_pick_inter_mode(VP8_COMP *cpi, MACROBLOCK *x, int recon_yoffset,
         rd.distortion_uv = uv_intra_distortion;
       } break;
 
-        case NEWMV:
-        {
-/// <<<--A-->>> +++
+      case NEWMV: {
+
 #if HAVE_CUDA_ENABLED_DEVICE
         	if ( !(cpi->oxcf.cuda_me_enabled) ) {
 #endif
-/// <<<--A-->>> fine
-            int thissme;
-            int bestsme = INT_MAX;
-            int step_param = cpi->sf.first_step;
-            int further_steps;
-            int n;
-            int do_refine=1;   /* If last step (1-away) of n-step search doesn't pick the center point as the best match,
-                                  we will do a final 1-away diamond refining search  */
+
+        int thissme;
+        int bestsme = INT_MAX;
+        int step_param = cpi->sf.first_step;
+        int further_steps;
+        int n;
+        /* If last step (1-away) of n-step search doesn't pick the center point
+           as the best match, we will do a final 1-away diamond refining search
+        */
+        int do_refine = 1;
 
         int sadpb = x->sadperbit16;
         int_mv mvp_full;
@@ -2186,12 +2181,25 @@ void vp8_rd_pick_inter_mode(VP8_COMP *cpi, MACROBLOCK *x, int recon_yoffset,
         x->mv_row_min = tmp_row_min;
         x->mv_row_max = tmp_row_max;
 
-/// <<<--A-->>> +++
+        if (bestsme < INT_MAX) {
+          int dis; /* TODO: use dis in distortion calculation later. */
+          unsigned int sse;
+          cpi->find_fractional_mv_step(
+              x, b, d, &d->bmi.mv, &best_ref_mv, x->errorperbit,
+              &cpi->fn_ptr[BLOCK_16X16], x->mvcost, &dis, &sse);
+        }
+
+        mode_mv[NEWMV].as_int = d->bmi.mv.as_int;
+
+        /* Add the new motion vector cost to our rolling cost variable */
+        rd.rate2 +=
+            vp8_mv_bit_cost(&mode_mv[NEWMV], &best_ref_mv, x->mvcost, 96);
+
 #if HAVE_CUDA_ENABLED_DEVICE
         	} else {
                 int streamID, mb_offset;
                 int_mv mv_from_gpu;
-                
+
 				streamID = (mb_row * cpi->common.gpu_frame.num_MB_width + mb_col) >> 4;     // streamID to sync
 				GPU_sync_stream_frame(&(cpi->common), streamID);      // sync on next stream
 				mb_offset = mb_row*cpi->common.mb_cols+mb_col;
@@ -2217,14 +2225,7 @@ void vp8_rd_pick_inter_mode(VP8_COMP *cpi, MACROBLOCK *x, int recon_yoffset,
 				/// <<<--A-->>> +++
         	}
 #endif
-/// <<<--A-->>> fine
-        }
 
-        mode_mv[NEWMV].as_int = d->bmi.mv.as_int;
-
-        /* Add the new motion vector cost to our rolling cost variable */
-        rd.rate2 +=
-            vp8_mv_bit_cost(&mode_mv[NEWMV], &best_ref_mv, x->mvcost, 96);
       }
 
       case NEARESTMV:
@@ -2244,6 +2245,11 @@ void vp8_rd_pick_inter_mode(VP8_COMP *cpi, MACROBLOCK *x, int recon_yoffset,
         }
 
       case ZEROMV:
+
+            vp8_set_mbmode_and_mvs(x, this_mode, &mode_mv[this_mode]);
+            this_rd = evaluate_inter_mode_rd(mdcounts, &rd,
+                                             &disable_skip, cpi, x);
+            break;
 
         /* Trap vectors that reach beyond the UMV borders
          * Note that ALL New MV, Nearest MV Near MV and Zero MV code

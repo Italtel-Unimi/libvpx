@@ -31,13 +31,11 @@
 #include "denoising.h"
 #endif
 
-/// <<<--A-->>> +++
 #if HAVE_CUDA_ENABLED_DEVICE
 #include "cuda/typedef_cuda.h"
 #include "cuda/frame_cuda.h"
 #include "cuda/me_cuda.h"
 #endif
-/// <<<--A-->>>
 
 #ifdef SPEEDSTATS
 extern unsigned int cnt_pm;
@@ -855,11 +853,21 @@ void vp8_pick_inter_mode(VP8_COMP *cpi, MACROBLOCK *x, int recon_yoffset,
     rd_adjustment = 150;
   }
 
-    if(cpi->oxcf.cuda_me_enabled == ME_FAST_KERNEL) {
-		x->rd_threshes[16] = INT_MAX;
-		x->rd_threshes[17] = INT_MAX;
-		x->rd_threshes[18] = INT_MAX;
-    }
+  #if HAVE_CUDA_ENABLED_DEVICE
+      if(cpi->oxcf.cuda_me_enabled == ME_FAST_KERNEL) {
+  		x->rd_threshes[16] = INT_MAX;
+  		x->rd_threshes[17] = INT_MAX;
+  		x->rd_threshes[18] = INT_MAX;
+      }
+  #endif
+
+  /* if we encode a new mv this is important
+   * find the best new motion vector
+   */
+  for (mode_index = 0; mode_index < MAX_MODES; ++mode_index) {
+    int frame_cost;
+    int this_rd = INT_MAX;
+    int this_ref_frame = ref_frame_map[vp8_ref_frame_order[mode_index]];
 
     if (best_rd <= x->rd_threshes[mode_index]) continue;
 
@@ -986,21 +994,17 @@ void vp8_pick_inter_mode(VP8_COMP *cpi, MACROBLOCK *x, int recon_yoffset,
                                                          ->mbmi.mode];
         this_rd = RDCOST(x->rdmult, x->rddiv, rate2, distortion2);
 
-        case NEWMV:
-        {
-/// <<<--A-->>> +++
+        if (this_rd < best_intra_rd) {
+          best_intra_rd = this_rd;
+          *returnintra = distortion2;
+        }
+        break;
+
+      case NEWMV: {
 #if HAVE_CUDA_ENABLED_DEVICE
 			if ( !(cpi->oxcf.cuda_me_enabled) ) {
 #endif
-/// <<<--A-->>> fine
-            int thissme;
-            int step_param;
-            int further_steps;
-            int n = 0;
-            int sadpb = x->sadperbit16;
-            int_mv mvp_full;
 
-      case NEWMV: {
         int thissme;
         int step_param;
         int further_steps;
@@ -1152,30 +1156,12 @@ void vp8_pick_inter_mode(VP8_COMP *cpi, MACROBLOCK *x, int recon_yoffset,
           x->mv_row_min = tmp_row_min;
           x->mv_row_max = tmp_row_max;
 
-                if (bestsme < INT_MAX)
-                    cpi->find_fractional_mv_step(x, b, d, &d->bmi.mv,
-                                             &best_ref_mv, x->errorperbit,
-                                             &cpi->fn_ptr[BLOCK_16X16],
-                                             cpi->mb.mvcost,
-                                             &distortion2,&sse);
-            }
-
-            mode_mv[NEWMV].as_int = d->bmi.mv.as_int;
-            // The clamp below is not necessary from the perspective
-            // of VP8 bitstream, but is added to improve ChromeCast
-            // mirroring's robustness. Please do not remove.
-            vp8_clamp_mv2(&mode_mv[this_mode], xd);
-            /* mv cost; */
-            rate2 += vp8_mv_bit_cost(&mode_mv[NEWMV], &best_ref_mv, cpi->mb.mvcost, 128);
-            //printf( "dist: %d, sse: %d   ", distortion2, sse );
-/// <<<--A-->>> +++
-#if HAVE_CUDA_ENABLED_DEVICE
-			} else {
-                int streamID, mb_offset, y_stride;
-                unsigned char *base_pre;
-                unsigned char *y;
-                unsigned char *z;
-                int_mv mv_from_gpu;
+          if (bestsme < INT_MAX) {
+            cpi->find_fractional_mv_step(
+                x, b, d, &d->bmi.mv, &best_ref_mv, x->errorperbit,
+                &cpi->fn_ptr[BLOCK_16X16], cpi->mb.mvcost, &distortion2, &sse);
+          }
+        }
 
         mode_mv[NEWMV].as_int = d->bmi.mv.as_int;
         // The clamp below is not necessary from the perspective
@@ -1185,6 +1171,50 @@ void vp8_pick_inter_mode(VP8_COMP *cpi, MACROBLOCK *x, int recon_yoffset,
         /* mv cost; */
         rate2 +=
             vp8_mv_bit_cost(&mode_mv[NEWMV], &best_ref_mv, cpi->mb.mvcost, 128);
+
+#if HAVE_CUDA_ENABLED_DEVICE
+			} else {
+                int streamID, mb_offset, y_stride;
+                unsigned char *base_pre;
+                unsigned char *y;
+                unsigned char *z;
+                int_mv mv_from_gpu;
+
+				streamID = (mb_row * cpi->common.gpu_frame.num_MB_width+mb_col) >> 4;     // streamID to sync
+				GPU_sync_stream_frame(&(cpi->common), streamID);      // sync on next stream
+				mb_offset = mb_row*cpi->common.mb_cols+mb_col;
+
+				switch (vp8_ref_frame_order[mode_index]) {
+					case LAST_FRAME:
+						mv_from_gpu = (cpi->common.host_frame.MVs_h)[0][mb_offset];
+						break;
+					case GOLDEN_FRAME:
+						mv_from_gpu = (cpi->common.host_frame.MVs_h)[1][mb_offset];
+						break;
+					case ALTREF_FRAME:
+						mv_from_gpu = (cpi->common.host_frame.MVs_h)[2][mb_offset];
+						break;
+					default:
+                        mv_from_gpu.as_int = 0;
+						printf("Oh, no!\n");
+				}
+
+				mode_mv[NEWMV] = mv_from_gpu;
+
+				/// <<<--A-->>> +++
+				// Taken from mcomp.c: vp8_find_best_half_pixel_step(..)
+                y_stride = x->e_mbd.pre.y_stride;
+				base_pre = x->e_mbd.pre.y_buffer;
+				y = base_pre + d->offset + (mv_from_gpu.as_mv.row) * y_stride + mv_from_gpu.as_mv.col;
+				z = (*(b->base_src) + b->src);
+				distortion2 = (cpi->fn_ptr[BLOCK_16X16].vf)(y, y_stride, z, b->src_stride, &sse);
+				/// <<<--A-->>> f
+
+				vp8_clamp_mv2(&mode_mv[NEWMV], xd);
+				rate2 += vp8_mv_bit_cost( &mode_mv[NEWMV], &best_ref_mv, x->mvcost, 128 );
+			}
+#endif
+
       }
 
       case NEARESTMV:
