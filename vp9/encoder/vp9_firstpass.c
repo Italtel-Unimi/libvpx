@@ -153,85 +153,85 @@ static void output_fpmb_stats(uint8_t *this_frame_mb_stats, VP9_COMMON *cm,
 #endif
 
 static void zero_stats(FIRSTPASS_STATS *section) {
-  section->frame = 0.0;
-  section->weight = 0.0;
-  section->intra_error = 0.0;
-  section->coded_error = 0.0;
-  section->sr_coded_error = 0.0;
-  section->pcnt_inter  = 0.0;
-  section->pcnt_motion  = 0.0;
-  section->pcnt_second_ref = 0.0;
-  section->pcnt_neutral = 0.0;
-  section->intra_skip_pct = 0.0;
-  section->intra_smooth_pct = 0.0;
+  section->frame              = 0.0;
+  section->weight             = 0.0;
+  section->intra_error        = 0.0;
+  section->coded_error        = 0.0;
+  section->sr_coded_error     = 0.0;
+  section->pcnt_inter         = 0.0;
+  section->pcnt_motion        = 0.0;
+  section->pcnt_second_ref    = 0.0;
+  section->pcnt_neutral       = 0.0;
+  section->intra_skip_pct     = 0.0;
+  section->intra_smooth_pct   = 0.0;
   section->inactive_zone_rows = 0.0;
   section->inactive_zone_cols = 0.0;
-  section->MVr = 0.0;
-  section->mvr_abs     = 0.0;
-  section->MVc        = 0.0;
-  section->mvc_abs     = 0.0;
-  section->MVrv       = 0.0;
-  section->MVcv       = 0.0;
-  section->mv_in_out_count  = 0.0;
-  section->new_mv_count = 0.0;
-  section->count      = 0.0;
-  section->duration   = 1.0;
-  section->spatial_layer_id = 0;
+  section->MVr                = 0.0;
+  section->mvr_abs            = 0.0;
+  section->MVc                = 0.0;
+  section->mvc_abs            = 0.0;
+  section->MVrv               = 0.0;
+  section->MVcv               = 0.0;
+  section->mv_in_out_count    = 0.0;
+  section->new_mv_count       = 0.0;
+  section->count              = 0.0;
+  section->duration           = 1.0;
+  section->spatial_layer_id   = 0;
 }
 
 static void accumulate_stats(FIRSTPASS_STATS *section,
                              const FIRSTPASS_STATS *frame) {
-  section->frame += frame->frame;
-  section->weight += frame->weight;
-  section->spatial_layer_id = frame->spatial_layer_id;
-  section->intra_error += frame->intra_error;
-  section->coded_error += frame->coded_error;
-  section->sr_coded_error += frame->sr_coded_error;
-  section->pcnt_inter  += frame->pcnt_inter;
-  section->pcnt_motion += frame->pcnt_motion;
-  section->pcnt_second_ref += frame->pcnt_second_ref;
-  section->pcnt_neutral += frame->pcnt_neutral;
-  section->intra_skip_pct += frame->intra_skip_pct;
-  section->intra_smooth_pct += frame->intra_smooth_pct;
+  section->frame              += frame->frame;
+  section->weight             += frame->weight;
+  section->spatial_layer_id    = frame->spatial_layer_id;
+  section->intra_error        += frame->intra_error;
+  section->coded_error        += frame->coded_error;
+  section->sr_coded_error     += frame->sr_coded_error;
+  section->pcnt_inter         += frame->pcnt_inter;
+  section->pcnt_motion        += frame->pcnt_motion;
+  section->pcnt_second_ref    += frame->pcnt_second_ref;
+  section->pcnt_neutral       += frame->pcnt_neutral;
+  section->intra_skip_pct     += frame->intra_skip_pct;
+  section->intra_smooth_pct   += frame->intra_smooth_pct;
   section->inactive_zone_rows += frame->inactive_zone_rows;
   section->inactive_zone_cols += frame->inactive_zone_cols;
-  section->MVr += frame->MVr;
-  section->mvr_abs     += frame->mvr_abs;
-  section->MVc        += frame->MVc;
-  section->mvc_abs     += frame->mvc_abs;
-  section->MVrv       += frame->MVrv;
-  section->MVcv       += frame->MVcv;
-  section->mv_in_out_count  += frame->mv_in_out_count;
-  section->new_mv_count += frame->new_mv_count;
-  section->count      += frame->count;
-  section->duration   += frame->duration;
+  section->MVr                += frame->MVr;
+  section->mvr_abs            += frame->mvr_abs;
+  section->MVc                += frame->MVc;
+  section->mvc_abs            += frame->mvc_abs;
+  section->MVrv               += frame->MVrv;
+  section->MVcv               += frame->MVcv;
+  section->mv_in_out_count    += frame->mv_in_out_count;
+  section->new_mv_count       += frame->new_mv_count;
+  section->count              += frame->count;
+  section->duration           += frame->duration;
 }
 
 static void subtract_stats(FIRSTPASS_STATS *section,
                            const FIRSTPASS_STATS *frame) {
-  section->frame -= frame->frame;
-  section->weight -= frame->weight;
-  section->intra_error -= frame->intra_error;
-  section->coded_error -= frame->coded_error;
-  section->sr_coded_error -= frame->sr_coded_error;
-  section->pcnt_inter  -= frame->pcnt_inter;
-  section->pcnt_motion -= frame->pcnt_motion;
-  section->pcnt_second_ref -= frame->pcnt_second_ref;
-  section->pcnt_neutral -= frame->pcnt_neutral;
-  section->intra_skip_pct -= frame->intra_skip_pct;
-  section->intra_smooth_pct -= frame->intra_smooth_pct;
+  section->frame              -= frame->frame;
+  section->weight             -= frame->weight;
+  section->intra_error        -= frame->intra_error;
+  section->coded_error        -= frame->coded_error;
+  section->sr_coded_error     -= frame->sr_coded_error;
+  section->pcnt_inter         -= frame->pcnt_inter;
+  section->pcnt_motion        -= frame->pcnt_motion;
+  section->pcnt_second_ref    -= frame->pcnt_second_ref;
+  section->pcnt_neutral       -= frame->pcnt_neutral;
+  section->intra_skip_pct     -= frame->intra_skip_pct;
+  section->intra_smooth_pct   -= frame->intra_smooth_pct;
   section->inactive_zone_rows -= frame->inactive_zone_rows;
   section->inactive_zone_cols -= frame->inactive_zone_cols;
-  section->MVr -= frame->MVr;
-  section->mvr_abs     -= frame->mvr_abs;
-  section->MVc        -= frame->MVc;
-  section->mvc_abs     -= frame->mvc_abs;
-  section->MVrv       -= frame->MVrv;
-  section->MVcv       -= frame->MVcv;
-  section->mv_in_out_count  -= frame->mv_in_out_count;
-  section->new_mv_count -= frame->new_mv_count;
-  section->count      -= frame->count;
-  section->duration   -= frame->duration;
+  section->MVr                -= frame->MVr;
+  section->mvr_abs            -= frame->mvr_abs;
+  section->MVc                -= frame->MVc;
+  section->mvc_abs            -= frame->mvc_abs;
+  section->MVrv               -= frame->MVrv;
+  section->MVcv               -= frame->MVcv;
+  section->mv_in_out_count    -= frame->mv_in_out_count;
+  section->new_mv_count       -= frame->new_mv_count;
+  section->count              -= frame->count;
+  section->duration           -= frame->duration;
 }
 
 // Calculate an active area of the image that discounts formatting
@@ -506,10 +506,10 @@ static int get_ul_intra_threshold(VP9_COMMON *cm) {
         ret_val = UL_INTRA_THRESH;
         break;
       case VPX_BITS_10:
-        ret_val = UL_INTRA_THRESH >> 2;
+        ret_val = UL_INTRA_THRESH << 2;
         break;
       case VPX_BITS_12:
-        ret_val = UL_INTRA_THRESH >> 4;
+        ret_val = UL_INTRA_THRESH << 4;
         break;
       default:
         assert(0 && "cm->bit_depth should be VPX_BITS_8, "
@@ -532,10 +532,10 @@ static int get_smooth_intra_threshold(VP9_COMMON *cm) {
         ret_val = SMOOTH_INTRA_THRESH;
         break;
       case VPX_BITS_10:
-        ret_val = SMOOTH_INTRA_THRESH >> 2;
+        ret_val = SMOOTH_INTRA_THRESH << 4;
         break;
       case VPX_BITS_12:
-        ret_val = SMOOTH_INTRA_THRESH >> 4;
+        ret_val = SMOOTH_INTRA_THRESH << 8;
         break;
       default:
         assert(0 && "cm->bit_depth should be VPX_BITS_8, "
@@ -931,7 +931,7 @@ void vp9_first_pass(VP9_COMP *cpi, const struct lookahead_entry *source) {
 
 #if CONFIG_FP_MB_STATS
         if (cpi->use_fp_mb_stats) {
-          // intra predication statistics
+          // intra prediction statistics
           cpi->twopass.frame_mb_stats_buf[mb_index] = 0;
           cpi->twopass.frame_mb_stats_buf[mb_index] |= FPMB_DCINTRA_MASK;
           cpi->twopass.frame_mb_stats_buf[mb_index] |= FPMB_MOTION_ZERO_MASK;
@@ -982,7 +982,7 @@ void vp9_first_pass(VP9_COMP *cpi, const struct lookahead_entry *source) {
 
 #if CONFIG_FP_MB_STATS
           if (cpi->use_fp_mb_stats) {
-            // inter predication statistics
+            // inter prediction statistics
             cpi->twopass.frame_mb_stats_buf[mb_index] = 0;
             cpi->twopass.frame_mb_stats_buf[mb_index] &= ~FPMB_DCINTRA_MASK;
             cpi->twopass.frame_mb_stats_buf[mb_index] |= FPMB_MOTION_ZERO_MASK;

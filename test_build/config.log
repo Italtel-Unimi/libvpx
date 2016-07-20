@@ -1,5 +1,4 @@
 # ../configure --enable-internal-stats
-Configuring selected codecs
   enabling vp8_encoder
   enabling vp8_decoder
   enabling vp9_encoder
@@ -7,326 +6,301 @@ Configuring selected codecs
 Configuring for target 'x86_64-linux-gcc'
   enabling x86_64
 check_cpp
-BEGIN /tmp/vpx-conf-9486-6487.c
+BEGIN /tmp/vpx-conf-72914-7977.c
      1	#if !defined(__ILP32__) || !defined(__x86_64__)
      2	#error "not x32"
      3	#endif
-END /tmp/vpx-conf-9486-6487.c
-gcc -E -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
-/tmp/vpx-conf-9486-6487.c:2:2: error: #error "not x32"
+END /tmp/vpx-conf-72914-7977.c
+gcc -E -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.c
+/tmp/vpx-conf-72914-7977.c:2:2: error: #error "not x32"
  #error "not x32"
   ^
   enabling runtime_cpu_detect
 check_cflags -mmmx
 check_cc -Werror -mmmx
-BEGIN /tmp/vpx-conf-9486-6487.c
+BEGIN /tmp/vpx-conf-72914-7977.c
      1	int x;
-END /tmp/vpx-conf-9486-6487.c
-gcc -m64 -Werror -mmmx -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
+END /tmp/vpx-conf-72914-7977.c
+gcc -m64 -Werror -mmmx -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.c
   enabling mmx
 check_cflags -msse
 check_cc -Werror -msse
-BEGIN /tmp/vpx-conf-9486-6487.c
+BEGIN /tmp/vpx-conf-72914-7977.c
      1	int x;
-END /tmp/vpx-conf-9486-6487.c
-gcc -m64 -Werror -msse -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
+END /tmp/vpx-conf-72914-7977.c
+gcc -m64 -Werror -msse -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.c
   enabling sse
 check_cflags -msse2
 check_cc -Werror -msse2
-BEGIN /tmp/vpx-conf-9486-6487.c
+BEGIN /tmp/vpx-conf-72914-7977.c
      1	int x;
-END /tmp/vpx-conf-9486-6487.c
-gcc -m64 -Werror -msse2 -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
+END /tmp/vpx-conf-72914-7977.c
+gcc -m64 -Werror -msse2 -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.c
   enabling sse2
 check_cflags -msse3
 check_cc -Werror -msse3
-BEGIN /tmp/vpx-conf-9486-6487.c
+BEGIN /tmp/vpx-conf-72914-7977.c
      1	int x;
-END /tmp/vpx-conf-9486-6487.c
-gcc -m64 -Werror -msse3 -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
+END /tmp/vpx-conf-72914-7977.c
+gcc -m64 -Werror -msse3 -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.c
   enabling sse3
 check_cflags -mssse3
 check_cc -Werror -mssse3
-BEGIN /tmp/vpx-conf-9486-6487.c
+BEGIN /tmp/vpx-conf-72914-7977.c
      1	int x;
-END /tmp/vpx-conf-9486-6487.c
-gcc -m64 -Werror -mssse3 -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
+END /tmp/vpx-conf-72914-7977.c
+gcc -m64 -Werror -mssse3 -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.c
   enabling ssse3
 check_cflags -msse4
 check_cc -Werror -msse4
-BEGIN /tmp/vpx-conf-9486-6487.c
+BEGIN /tmp/vpx-conf-72914-7977.c
      1	int x;
-END /tmp/vpx-conf-9486-6487.c
-gcc -m64 -Werror -msse4 -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
+END /tmp/vpx-conf-72914-7977.c
+gcc -m64 -Werror -msse4 -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.c
   enabling sse4_1
 check_cflags -mavx
 check_cc -Werror -mavx
-BEGIN /tmp/vpx-conf-9486-6487.c
+BEGIN /tmp/vpx-conf-72914-7977.c
      1	int x;
-END /tmp/vpx-conf-9486-6487.c
-gcc -m64 -Werror -mavx -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
+END /tmp/vpx-conf-72914-7977.c
+gcc -m64 -Werror -mavx -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.c
   enabling avx
 check_cflags -mavx2
 check_cc -Werror -mavx2
-BEGIN /tmp/vpx-conf-9486-6487.c
+BEGIN /tmp/vpx-conf-72914-7977.c
      1	int x;
-END /tmp/vpx-conf-9486-6487.c
-gcc -m64 -Werror -mavx2 -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
+END /tmp/vpx-conf-72914-7977.c
+gcc -m64 -Werror -mavx2 -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.c
   enabling avx2
   using yasm
 check_cxxflags -DNDEBUG
 check_cxx -Werror -DNDEBUG
-BEGIN /tmp/vpx-conf-9486-6487.cc
+BEGIN /tmp/vpx-conf-72914-7977.cc
      1	int x;
-END /tmp/vpx-conf-9486-6487.cc
-g++ -m64 -Werror -DNDEBUG -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.cc
+END /tmp/vpx-conf-72914-7977.cc
+g++ -m64 -Werror -DNDEBUG -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.cc
 check_cflags -DNDEBUG
 check_cc -Werror -DNDEBUG
-BEGIN /tmp/vpx-conf-9486-6487.c
+BEGIN /tmp/vpx-conf-72914-7977.c
      1	int x;
-END /tmp/vpx-conf-9486-6487.c
-gcc -m64 -Werror -DNDEBUG -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
+END /tmp/vpx-conf-72914-7977.c
+gcc -m64 -Werror -DNDEBUG -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.c
 check_cxxflags -O3
 check_cxx -Werror -O3
-BEGIN /tmp/vpx-conf-9486-6487.cc
+BEGIN /tmp/vpx-conf-72914-7977.cc
      1	int x;
-END /tmp/vpx-conf-9486-6487.cc
-g++ -m64 -DNDEBUG -Werror -O3 -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.cc
+END /tmp/vpx-conf-72914-7977.cc
+g++ -m64 -DNDEBUG -Werror -O3 -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.cc
 check_cflags -O3
 check_cc -Werror -O3
-BEGIN /tmp/vpx-conf-9486-6487.c
+BEGIN /tmp/vpx-conf-72914-7977.c
      1	int x;
-END /tmp/vpx-conf-9486-6487.c
-gcc -m64 -DNDEBUG -Werror -O3 -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
-  enabling use_x86inc
+END /tmp/vpx-conf-72914-7977.c
+gcc -m64 -DNDEBUG -Werror -O3 -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.c
 check_cxxflags -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0
 check_cxx -Werror -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0
-BEGIN /tmp/vpx-conf-9486-6487.cc
+BEGIN /tmp/vpx-conf-72914-7977.cc
      1	int x;
-END /tmp/vpx-conf-9486-6487.cc
-g++ -m64 -DNDEBUG -O3 -Werror -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.cc
+END /tmp/vpx-conf-72914-7977.cc
+g++ -m64 -DNDEBUG -O3 -Werror -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.cc
 check_cflags -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0
 check_cc -Werror -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0
-BEGIN /tmp/vpx-conf-9486-6487.c
+BEGIN /tmp/vpx-conf-72914-7977.c
      1	int x;
-END /tmp/vpx-conf-9486-6487.c
-gcc -m64 -DNDEBUG -O3 -Werror -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
+END /tmp/vpx-conf-72914-7977.c
+gcc -m64 -DNDEBUG -O3 -Werror -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.c
 check_cc
-BEGIN /tmp/vpx-conf-9486-6487.c
+BEGIN /tmp/vpx-conf-72914-7977.c
      1	unsigned int e = 'O'<<24 | '2'<<16 | 'B'<<8 | 'E';
-END /tmp/vpx-conf-9486-6487.c
-gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
+END /tmp/vpx-conf-72914-7977.c
+gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.c
 check_cc
-BEGIN /tmp/vpx-conf-9486-6487.c
+BEGIN /tmp/vpx-conf-72914-7977.c
      1	static inline function() {}
-END /tmp/vpx-conf-9486-6487.c
-gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
+END /tmp/vpx-conf-72914-7977.c
+gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.c
 check_header pthread.h
 check_cpp
-BEGIN /tmp/vpx-conf-9486-6487.c
+BEGIN /tmp/vpx-conf-72914-7977.c
      1	#include "pthread.h"
      2	int x;
-END /tmp/vpx-conf-9486-6487.c
-gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -E -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
+END /tmp/vpx-conf-72914-7977.c
+gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -E -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.c
 check_cxxflags -Wall
 check_cxx -Werror -Wall
-BEGIN /tmp/vpx-conf-9486-6487.cc
+BEGIN /tmp/vpx-conf-72914-7977.cc
      1	int x;
-END /tmp/vpx-conf-9486-6487.cc
-g++ -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Werror -Wall -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.cc
+END /tmp/vpx-conf-72914-7977.cc
+g++ -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Werror -Wall -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.cc
 check_cflags -Wall
 check_cc -Werror -Wall
-BEGIN /tmp/vpx-conf-9486-6487.c
+BEGIN /tmp/vpx-conf-72914-7977.c
      1	int x;
-END /tmp/vpx-conf-9486-6487.c
-gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Werror -Wall -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
+END /tmp/vpx-conf-72914-7977.c
+gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Werror -Wall -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.c
 check_cxxflags -Wdeclaration-after-statement
 check_cxx -Werror -Wdeclaration-after-statement
-BEGIN /tmp/vpx-conf-9486-6487.cc
+BEGIN /tmp/vpx-conf-72914-7977.cc
      1	int x;
-END /tmp/vpx-conf-9486-6487.cc
-g++ -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Werror -Wdeclaration-after-statement -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.cc
+END /tmp/vpx-conf-72914-7977.cc
+g++ -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Werror -Wdeclaration-after-statement -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.cc
 cc1plus: error: command line option ‘-Wdeclaration-after-statement’ is valid for C/ObjC but not for C++ [-Werror]
 cc1plus: all warnings being treated as errors
 check_cflags -Wdeclaration-after-statement
 check_cc -Werror -Wdeclaration-after-statement
-BEGIN /tmp/vpx-conf-9486-6487.c
+BEGIN /tmp/vpx-conf-72914-7977.c
      1	int x;
-END /tmp/vpx-conf-9486-6487.c
-gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Werror -Wdeclaration-after-statement -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
+END /tmp/vpx-conf-72914-7977.c
+gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Werror -Wdeclaration-after-statement -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.c
 check_cxxflags -Wdisabled-optimization
 check_cxx -Werror -Wdisabled-optimization
-BEGIN /tmp/vpx-conf-9486-6487.cc
+BEGIN /tmp/vpx-conf-72914-7977.cc
      1	int x;
-END /tmp/vpx-conf-9486-6487.cc
-g++ -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Werror -Wdisabled-optimization -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.cc
+END /tmp/vpx-conf-72914-7977.cc
+g++ -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Werror -Wdisabled-optimization -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.cc
 check_cflags -Wdisabled-optimization
 check_cc -Werror -Wdisabled-optimization
-BEGIN /tmp/vpx-conf-9486-6487.c
+BEGIN /tmp/vpx-conf-72914-7977.c
      1	int x;
-END /tmp/vpx-conf-9486-6487.c
-gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement -Werror -Wdisabled-optimization -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
+END /tmp/vpx-conf-72914-7977.c
+gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement -Werror -Wdisabled-optimization -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.c
 check_cxxflags -Wpointer-arith
 check_cxx -Werror -Wpointer-arith
-BEGIN /tmp/vpx-conf-9486-6487.cc
+BEGIN /tmp/vpx-conf-72914-7977.cc
      1	int x;
-END /tmp/vpx-conf-9486-6487.cc
-g++ -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdisabled-optimization -Werror -Wpointer-arith -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.cc
+END /tmp/vpx-conf-72914-7977.cc
+g++ -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdisabled-optimization -Werror -Wpointer-arith -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.cc
 check_cflags -Wpointer-arith
 check_cc -Werror -Wpointer-arith
-BEGIN /tmp/vpx-conf-9486-6487.c
+BEGIN /tmp/vpx-conf-72914-7977.c
      1	int x;
-END /tmp/vpx-conf-9486-6487.c
-gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement -Wdisabled-optimization -Werror -Wpointer-arith -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
+END /tmp/vpx-conf-72914-7977.c
+gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement -Wdisabled-optimization -Werror -Wpointer-arith -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.c
 check_cxxflags -Wtype-limits
 check_cxx -Werror -Wtype-limits
-BEGIN /tmp/vpx-conf-9486-6487.cc
+BEGIN /tmp/vpx-conf-72914-7977.cc
      1	int x;
-END /tmp/vpx-conf-9486-6487.cc
-g++ -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdisabled-optimization -Wpointer-arith -Werror -Wtype-limits -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.cc
+END /tmp/vpx-conf-72914-7977.cc
+g++ -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdisabled-optimization -Wpointer-arith -Werror -Wtype-limits -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.cc
 check_cflags -Wtype-limits
 check_cc -Werror -Wtype-limits
-BEGIN /tmp/vpx-conf-9486-6487.c
+BEGIN /tmp/vpx-conf-72914-7977.c
      1	int x;
-END /tmp/vpx-conf-9486-6487.c
-gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement -Wdisabled-optimization -Wpointer-arith -Werror -Wtype-limits -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
+END /tmp/vpx-conf-72914-7977.c
+gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement -Wdisabled-optimization -Wpointer-arith -Werror -Wtype-limits -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.c
 check_cxxflags -Wcast-qual
 check_cxx -Werror -Wcast-qual
-BEGIN /tmp/vpx-conf-9486-6487.cc
+BEGIN /tmp/vpx-conf-72914-7977.cc
      1	int x;
-END /tmp/vpx-conf-9486-6487.cc
-g++ -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Werror -Wcast-qual -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.cc
+END /tmp/vpx-conf-72914-7977.cc
+g++ -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Werror -Wcast-qual -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.cc
 check_cflags -Wcast-qual
 check_cc -Werror -Wcast-qual
-BEGIN /tmp/vpx-conf-9486-6487.c
+BEGIN /tmp/vpx-conf-72914-7977.c
      1	int x;
-END /tmp/vpx-conf-9486-6487.c
-gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Werror -Wcast-qual -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
+END /tmp/vpx-conf-72914-7977.c
+gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Werror -Wcast-qual -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.c
 check_cxxflags -Wvla
 check_cxx -Werror -Wvla
-BEGIN /tmp/vpx-conf-9486-6487.cc
+BEGIN /tmp/vpx-conf-72914-7977.cc
      1	int x;
-END /tmp/vpx-conf-9486-6487.cc
-g++ -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Werror -Wvla -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.cc
+END /tmp/vpx-conf-72914-7977.cc
+g++ -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Werror -Wvla -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.cc
 check_cflags -Wvla
 check_cc -Werror -Wvla
-BEGIN /tmp/vpx-conf-9486-6487.c
+BEGIN /tmp/vpx-conf-72914-7977.c
      1	int x;
-END /tmp/vpx-conf-9486-6487.c
-gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Werror -Wvla -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
+END /tmp/vpx-conf-72914-7977.c
+gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Werror -Wvla -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.c
 check_cxxflags -Wimplicit-function-declaration
 check_cxx -Werror -Wimplicit-function-declaration
-BEGIN /tmp/vpx-conf-9486-6487.cc
+BEGIN /tmp/vpx-conf-72914-7977.cc
      1	int x;
-END /tmp/vpx-conf-9486-6487.cc
-g++ -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Werror -Wimplicit-function-declaration -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.cc
+END /tmp/vpx-conf-72914-7977.cc
+g++ -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Werror -Wimplicit-function-declaration -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.cc
 cc1plus: error: command line option ‘-Wimplicit-function-declaration’ is valid for C/ObjC but not for C++ [-Werror]
 cc1plus: all warnings being treated as errors
 check_cflags -Wimplicit-function-declaration
 check_cc -Werror -Wimplicit-function-declaration
-BEGIN /tmp/vpx-conf-9486-6487.c
+BEGIN /tmp/vpx-conf-72914-7977.c
      1	int x;
-END /tmp/vpx-conf-9486-6487.c
-gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Werror -Wimplicit-function-declaration -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
+END /tmp/vpx-conf-72914-7977.c
+gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Werror -Wimplicit-function-declaration -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.c
 check_cxxflags -Wuninitialized
 check_cxx -Werror -Wuninitialized
-BEGIN /tmp/vpx-conf-9486-6487.cc
+BEGIN /tmp/vpx-conf-72914-7977.cc
      1	int x;
-END /tmp/vpx-conf-9486-6487.cc
-g++ -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Werror -Wuninitialized -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.cc
+END /tmp/vpx-conf-72914-7977.cc
+g++ -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Werror -Wuninitialized -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.cc
 check_cflags -Wuninitialized
 check_cc -Werror -Wuninitialized
-BEGIN /tmp/vpx-conf-9486-6487.c
+BEGIN /tmp/vpx-conf-72914-7977.c
      1	int x;
-END /tmp/vpx-conf-9486-6487.c
-gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wimplicit-function-declaration -Werror -Wuninitialized -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
-check_cxxflags -Wunused-variable
-check_cxx -Werror -Wunused-variable
-BEGIN /tmp/vpx-conf-9486-6487.cc
+END /tmp/vpx-conf-72914-7977.c
+gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wimplicit-function-declaration -Werror -Wuninitialized -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.c
+check_cxxflags -Wunused
+check_cxx -Werror -Wunused
+BEGIN /tmp/vpx-conf-72914-7977.cc
      1	int x;
-END /tmp/vpx-conf-9486-6487.cc
-g++ -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wuninitialized -Werror -Wunused-variable -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.cc
-check_cflags -Wunused-variable
-check_cc -Werror -Wunused-variable
-BEGIN /tmp/vpx-conf-9486-6487.c
+END /tmp/vpx-conf-72914-7977.cc
+g++ -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wuninitialized -Werror -Wunused -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.cc
+check_cflags -Wunused
+check_cc -Werror -Wunused
+BEGIN /tmp/vpx-conf-72914-7977.c
      1	int x;
-END /tmp/vpx-conf-9486-6487.c
-gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wimplicit-function-declaration -Wuninitialized -Werror -Wunused-variable -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
-check_cxxflags -Wunused-but-set-variable
-check_cxx -Werror -Wunused-but-set-variable
-BEGIN /tmp/vpx-conf-9486-6487.cc
-     1	int x;
-END /tmp/vpx-conf-9486-6487.cc
-g++ -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wuninitialized -Wunused-variable -Werror -Wunused-but-set-variable -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.cc
-check_cflags -Wunused-but-set-variable
-check_cc -Werror -Wunused-but-set-variable
-BEGIN /tmp/vpx-conf-9486-6487.c
-     1	int x;
-END /tmp/vpx-conf-9486-6487.c
-gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wimplicit-function-declaration -Wuninitialized -Wunused-variable -Werror -Wunused-but-set-variable -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
-check_cxxflags -Wunused-function
-check_cxx -Werror -Wunused-function
-BEGIN /tmp/vpx-conf-9486-6487.cc
-     1	int x;
-END /tmp/vpx-conf-9486-6487.cc
-g++ -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wuninitialized -Wunused-variable -Wunused-but-set-variable -Werror -Wunused-function -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.cc
-check_cflags -Wunused-function
-check_cc -Werror -Wunused-function
-BEGIN /tmp/vpx-conf-9486-6487.c
-     1	int x;
-END /tmp/vpx-conf-9486-6487.c
-gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wimplicit-function-declaration -Wuninitialized -Wunused-variable -Wunused-but-set-variable -Werror -Wunused-function -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
+END /tmp/vpx-conf-72914-7977.c
+gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wimplicit-function-declaration -Wuninitialized -Werror -Wunused -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.c
   enabling postproc
 check_cxx
-BEGIN /tmp/vpx-conf-9486-6487.cc
+BEGIN /tmp/vpx-conf-72914-7977.cc
      1	int z;
-END /tmp/vpx-conf-9486-6487.cc
-g++ -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wuninitialized -Wunused-variable -Wunused-but-set-variable -Wunused-function -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.cc
+END /tmp/vpx-conf-72914-7977.cc
+g++ -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wuninitialized -Wunused -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.cc
   enabling unit_tests
 check_cxx
-BEGIN /tmp/vpx-conf-9486-6487.cc
+BEGIN /tmp/vpx-conf-72914-7977.cc
      1	int z;
-END /tmp/vpx-conf-9486-6487.cc
-g++ -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wuninitialized -Wunused-variable -Wunused-but-set-variable -Wunused-function -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.cc
+END /tmp/vpx-conf-72914-7977.cc
+g++ -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wuninitialized -Wunused -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.cc
   enabling webm_io
 check_cxx
-BEGIN /tmp/vpx-conf-9486-6487.cc
+BEGIN /tmp/vpx-conf-72914-7977.cc
      1	int z;
-END /tmp/vpx-conf-9486-6487.cc
-g++ -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wuninitialized -Wunused-variable -Wunused-but-set-variable -Wunused-function -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.cc
+END /tmp/vpx-conf-72914-7977.cc
+g++ -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wuninitialized -Wunused -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.cc
   enabling libyuv
 check_header stdio.h
 check_cpp
-BEGIN /tmp/vpx-conf-9486-6487.c
+BEGIN /tmp/vpx-conf-72914-7977.c
      1	#include "stdio.h"
      2	int x;
-END /tmp/vpx-conf-9486-6487.c
-gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wimplicit-function-declaration -Wuninitialized -Wunused-variable -Wunused-but-set-variable -Wunused-function -E -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
+END /tmp/vpx-conf-72914-7977.c
+gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wimplicit-function-declaration -Wuninitialized -Wunused -E -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.c
 check_ld
 check_cc
-BEGIN /tmp/vpx-conf-9486-6487.c
+BEGIN /tmp/vpx-conf-72914-7977.c
      1	int main(void) {return 0;}
-END /tmp/vpx-conf-9486-6487.c
-gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wimplicit-function-declaration -Wuninitialized -Wunused-variable -Wunused-but-set-variable -Wunused-function -c -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
-g++ -m64 -o /tmp/vpx-conf-9486-6487.x /tmp/vpx-conf-9486-6487.o -lpthread
+END /tmp/vpx-conf-72914-7977.c
+gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wimplicit-function-declaration -Wuninitialized -Wunused -c -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.c
+g++ -m64 -o /tmp/vpx-conf-72914-7977.x /tmp/vpx-conf-72914-7977.o -lpthread
 check_header pthread.h
 check_cpp
-BEGIN /tmp/vpx-conf-9486-6487.c
+BEGIN /tmp/vpx-conf-72914-7977.c
      1	#include "pthread.h"
      2	int x;
-END /tmp/vpx-conf-9486-6487.c
-gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wimplicit-function-declaration -Wuninitialized -Wunused-variable -Wunused-but-set-variable -Wunused-function -E -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
+END /tmp/vpx-conf-72914-7977.c
+gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wimplicit-function-declaration -Wuninitialized -Wunused -E -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.c
 check_header unistd.h
 check_cpp
-BEGIN /tmp/vpx-conf-9486-6487.c
+BEGIN /tmp/vpx-conf-72914-7977.c
      1	#include "unistd.h"
      2	int x;
-END /tmp/vpx-conf-9486-6487.c
-gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wimplicit-function-declaration -Wuninitialized -Wunused-variable -Wunused-but-set-variable -Wunused-function -E -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
+END /tmp/vpx-conf-72914-7977.c
+gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wimplicit-function-declaration -Wuninitialized -Wunused -E -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.c
 check_header vpx/vpx_integer.h -I..
 check_cpp -I..
-BEGIN /tmp/vpx-conf-9486-6487.c
+BEGIN /tmp/vpx-conf-72914-7977.c
      1	#include "vpx/vpx_integer.h"
      2	int x;
-END /tmp/vpx-conf-9486-6487.c
-gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wimplicit-function-declaration -Wuninitialized -Wunused-variable -Wunused-but-set-variable -Wunused-function -I.. -E -o /tmp/vpx-conf-9486-6487.o /tmp/vpx-conf-9486-6487.c
+END /tmp/vpx-conf-72914-7977.c
+gcc -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wimplicit-function-declaration -Wuninitialized -Wunused -I.. -E -o /tmp/vpx-conf-72914-7977.o /tmp/vpx-conf-72914-7977.c

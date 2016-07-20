@@ -105,19 +105,6 @@ struct vpx_codec_alg_priv {
   BufferPool              *buffer_pool;
 };
 
-static VP9_REFFRAME ref_frame_to_vp9_reframe(vpx_ref_frame_type_t frame) {
-  switch (frame) {
-    case VP8_LAST_FRAME:
-      return VP9_LAST_FLAG;
-    case VP8_GOLD_FRAME:
-      return VP9_GOLD_FLAG;
-    case VP8_ALTR_FRAME:
-      return VP9_ALT_FLAG;
-  }
-  assert(0 && "Invalid Reference Frame");
-  return VP9_LAST_FLAG;
-}
-
 static vpx_codec_err_t update_error_state(vpx_codec_alg_priv_t *ctx,
     const struct vpx_internal_error_info *error) {
   const vpx_codec_err_t res = error->error_code;
@@ -1005,6 +992,7 @@ static vpx_codec_frame_flags_t get_frame_pkt_flags(const VP9_COMP *cpi,
   return flags;
 }
 
+const size_t kMinCompressedSize = 8192;
 static vpx_codec_err_t encoder_encode(vpx_codec_alg_priv_t  *ctx,
                                       const vpx_image_t *img,
                                       vpx_codec_pts_t pts,
@@ -1026,8 +1014,8 @@ static vpx_codec_err_t encoder_encode(vpx_codec_alg_priv_t  *ctx,
       // instance for its status to determine the compressed data size.
       data_sz = ctx->cfg.g_w * ctx->cfg.g_h * get_image_bps(img) / 8 *
                 (cpi->multi_arf_allowed ? 8 : 2);
-      if (data_sz < 4096)
-        data_sz = 4096;
+      if (data_sz < kMinCompressedSize)
+        data_sz = kMinCompressedSize;
       if (ctx->cx_data == NULL || ctx->cx_data_sz < data_sz) {
         ctx->cx_data_sz = data_sz;
         free(ctx->cx_data);

@@ -97,11 +97,11 @@ EOF
 
 # all_platforms is a list of all supported target platforms. Maintain
 # alphabetically by architecture, generic-gnu last.
+all_platforms="${all_platforms} arm64-darwin-gcc"
+all_platforms="${all_platforms} arm64-linux-gcc"
 all_platforms="${all_platforms} armv6-linux-rvct"
 all_platforms="${all_platforms} armv6-linux-gcc"
 all_platforms="${all_platforms} armv6-none-rvct"
-all_platforms="${all_platforms} arm64-darwin-gcc"
-all_platforms="${all_platforms} arm64-linux-gcc"
 all_platforms="${all_platforms} armv7-android-gcc"   #neon Cortex-A8
 all_platforms="${all_platforms} armv7-darwin-gcc"    #neon Cortex-A8
 all_platforms="${all_platforms} armv7-linux-rvct"    #neon Cortex-A8
@@ -111,6 +111,7 @@ all_platforms="${all_platforms} armv7-win32-vs11"
 all_platforms="${all_platforms} armv7-win32-vs12"
 all_platforms="${all_platforms} armv7-win32-vs14"
 all_platforms="${all_platforms} armv7s-darwin-gcc"
+all_platforms="${all_platforms} armv8-linux-gcc"
 all_platforms="${all_platforms} mips32-linux-gcc"
 all_platforms="${all_platforms} mips64-linux-gcc"
 all_platforms="${all_platforms} sparc-solaris-gcc"
@@ -131,9 +132,6 @@ all_platforms="${all_platforms} x86-linux-icc"
 all_platforms="${all_platforms} x86-os2-gcc"
 all_platforms="${all_platforms} x86-solaris-gcc"
 all_platforms="${all_platforms} x86-win32-gcc"
-all_platforms="${all_platforms} x86-win32-vs7"
-all_platforms="${all_platforms} x86-win32-vs8"
-all_platforms="${all_platforms} x86-win32-vs9"
 all_platforms="${all_platforms} x86-win32-vs10"
 all_platforms="${all_platforms} x86-win32-vs11"
 all_platforms="${all_platforms} x86-win32-vs12"
@@ -151,8 +149,6 @@ all_platforms="${all_platforms} x86_64-linux-gcc"
 all_platforms="${all_platforms} x86_64-linux-icc"
 all_platforms="${all_platforms} x86_64-solaris-gcc"
 all_platforms="${all_platforms} x86_64-win64-gcc"
-all_platforms="${all_platforms} x86_64-win64-vs8"
-all_platforms="${all_platforms} x86_64-win64-vs9"
 all_platforms="${all_platforms} x86_64-win64-vs10"
 all_platforms="${all_platforms} x86_64-win64-vs11"
 all_platforms="${all_platforms} x86_64-win64-vs12"
@@ -271,7 +267,6 @@ CONFIG_LIST="
     install_bins
     install_libs
     install_srcs
-    use_x86inc
     debug
     gprof
     gcov
@@ -333,7 +328,6 @@ CMDLINE_SELECT="
     gprof
     gcov
     pic
-    use_x86inc
     optimizations
     ccache
     runtime_cpu_detect
@@ -583,7 +577,7 @@ process_toolchain() {
         check_add_cflags -Wvla
         check_add_cflags -Wimplicit-function-declaration
         check_add_cflags -Wuninitialized
-        check_add_cflags -Wunused-variable
+        check_add_cflags -Wunused
         case ${CC} in
           *clang*)
               # libvpx and/or clang have issues with aliasing:
@@ -591,12 +585,9 @@ process_toolchain() {
               # work around them until they are fixed
               check_add_cflags -fno-strict-aliasing
           ;;
-          *) check_add_cflags -Wunused-but-set-variable ;;
         esac
         if enabled mips || [ -z "${INLINE}" ]; then
           enabled extra_warnings || check_add_cflags -Wno-unused-function
-        else
-          check_add_cflags -Wunused-function
         fi
     fi
 
@@ -645,17 +636,9 @@ process_toolchain() {
         vs*) enable_feature msvs
              enable_feature solution
              vs_version=${tgt_cc##vs}
-             case $vs_version in
-             [789])
-                 VCPROJ_SFX=vcproj
-                 gen_vcproj_cmd=${source_path}/build/make/gen_msvs_proj.sh
-                 ;;
-             10|11|12|14)
-                 VCPROJ_SFX=vcxproj
-                 gen_vcproj_cmd=${source_path}/build/make/gen_msvs_vcxproj.sh
-                 enabled werror && gen_vcproj_cmd="${gen_vcproj_cmd} --enable-werror"
-                 ;;
-             esac
+             VCPROJ_SFX=vcxproj
+             gen_vcproj_cmd=${source_path}/build/make/gen_msvs_vcxproj.sh
+             enabled werror && gen_vcproj_cmd="${gen_vcproj_cmd} --enable-werror"
              all_targets="${all_targets} solution"
              INLINE="__forceinline"
         ;;

@@ -246,6 +246,13 @@ typedef struct SPEED_FEATURES {
   // Coefficient probability model approximation step size
   int coeff_prob_appx_step;
 
+  // Enable uniform quantizer followed by trellis coefficient optimization
+  int quant_coeff_opt;
+
+  // Use transform domain distortion. Use pixel domain distortion in speed 0
+  // and certain situations in higher speed to improve the RD model precision.
+  int txfm_domain_distortion;
+
   // The threshold is to determine how slow the motino is, it is used when
   // use_lastframe_partitioning is set to LAST_FRAME_PARTITION_LOW_MOTION
   MOTION_THRESHOLD lf_motion_threshold;

@@ -59,7 +59,7 @@ typedef struct vp9_token_state {
   tran_low_t    dqc;
 } vp9_token_state;
 
-static const int plane_rd_mult[REF_TYPES][PLANE_TYPES] ={ {10, 6}, {8, 7}, };
+static const int plane_rd_mult[REF_TYPES][PLANE_TYPES] ={ {10, 6}, {8, 5}, };
 
 #define UPDATE_RD_COST()\
 {\
@@ -80,8 +80,8 @@ static int trellis_get_coeff_context(const int16_t *scan,
   return pt;
 }
 
-static int optimize_b(MACROBLOCK *mb, int plane, int block,
-                      TX_SIZE tx_size, int ctx) {
+int vp9_optimize_b(MACROBLOCK *mb, int plane, int block,
+                   TX_SIZE tx_size, int ctx) {
   MACROBLOCKD *const xd = &mb->e_mbd;
   struct macroblock_plane *const p = &mb->plane[plane];
   struct macroblockd_plane *const pd = &xd->plane[plane];
@@ -269,17 +269,18 @@ static int optimize_b(MACROBLOCK *mb, int plane, int block,
        *  add a new trellis node, but we do need to update the costs.
        */
       band = band_translate[i + 1];
+      pt = get_coef_context(nb, token_cache, i + 1);
       t0 = tokens[next][0].token;
       t1 = tokens[next][1].token;
       /* Update the cost of each path if we're past the EOB token. */
       if (t0 != EOB_TOKEN) {
         tokens[next][0].rate +=
-            mb->token_costs[tx_size][type][ref][band][1][0][t0];
+            mb->token_costs[tx_size][type][ref][band][1][pt][t0];
         tokens[next][0].token = ZERO_TOKEN;
       }
       if (t1 != EOB_TOKEN) {
         tokens[next][1].rate +=
-            mb->token_costs[tx_size][type][ref][band][1][0][t1];
+            mb->token_costs[tx_size][type][ref][band][1][pt][t1];
         tokens[next][1].token = ZERO_TOKEN;
       }
       best_index[i][0] = best_index[i][1] = 0;
@@ -335,7 +336,7 @@ static INLINE void highbd_fdct32x32(int rd_transform, const int16_t *src,
 }
 #endif  // CONFIG_VP9_HIGHBITDEPTH
 
-void vp9_xform_quant_fp(MACROBLOCK *x, int plane, int block,
+void vp9_xform_quant_fp(MACROBLOCK *x, int plane, int block, int row, int col,
                         BLOCK_SIZE plane_bsize, TX_SIZE tx_size) {
   MACROBLOCKD *const xd = &x->e_mbd;
   const struct macroblock_plane *const p = &x->plane[plane];
@@ -346,10 +347,8 @@ void vp9_xform_quant_fp(MACROBLOCK *x, int plane, int block,
   tran_low_t *const dqcoeff = BLOCK_OFFSET(pd->dqcoeff, block);
   uint16_t *const eob = &p->eobs[block];
   const int diff_stride = 4 * num_4x4_blocks_wide_lookup[plane_bsize];
-  int i, j;
   const int16_t *src_diff;
-  txfrm_block_to_raster_xy(plane_bsize, tx_size, block, &i, &j);
-  src_diff = &p->src_diff[4 * (j * diff_stride + i)];
+  src_diff = &p->src_diff[4 * (row * diff_stride + col)];
 
 #if CONFIG_VP9_HIGHBITDEPTH
   if (xd->cur_buf->flags & YV12_FLAG_HIGHBITDEPTH) {
@@ -425,7 +424,7 @@ void vp9_xform_quant_fp(MACROBLOCK *x, int plane, int block,
   }
 }
 
-void vp9_xform_quant_dc(MACROBLOCK *x, int plane, int block,
+void vp9_xform_quant_dc(MACROBLOCK *x, int plane, int block, int row, int col,
                         BLOCK_SIZE plane_bsize, TX_SIZE tx_size) {
   MACROBLOCKD *const xd = &x->e_mbd;
   const struct macroblock_plane *const p = &x->plane[plane];
@@ -435,12 +434,8 @@ void vp9_xform_quant_dc(MACROBLOCK *x, int plane, int block,
   tran_low_t *const dqcoeff = BLOCK_OFFSET(pd->dqcoeff, block);
   uint16_t *const eob = &p->eobs[block];
   const int diff_stride = 4 * num_4x4_blocks_wide_lookup[plane_bsize];
-  int i, j;
   const int16_t *src_diff;
-
-  txfrm_block_to_raster_xy(plane_bsize, tx_size, block, &i, &j);
-  src_diff = &p->src_diff[4 * (j * diff_stride + i)];
-
+  src_diff = &p->src_diff[4 * (row * diff_stride + col)];
 #if CONFIG_VP9_HIGHBITDEPTH
   if (xd->cur_buf->flags & YV12_FLAG_HIGHBITDEPTH) {
     switch (tx_size) {
@@ -506,7 +501,7 @@ void vp9_xform_quant_dc(MACROBLOCK *x, int plane, int block,
   }
 }
 
-void vp9_xform_quant(MACROBLOCK *x, int plane, int block,
+void vp9_xform_quant(MACROBLOCK *x, int plane, int block, int row, int col,
                      BLOCK_SIZE plane_bsize, TX_SIZE tx_size) {
   MACROBLOCKD *const xd = &x->e_mbd;
   const struct macroblock_plane *const p = &x->plane[plane];
@@ -517,10 +512,8 @@ void vp9_xform_quant(MACROBLOCK *x, int plane, int block,
   tran_low_t *const dqcoeff = BLOCK_OFFSET(pd->dqcoeff, block);
   uint16_t *const eob = &p->eobs[block];
   const int diff_stride = 4 * num_4x4_blocks_wide_lookup[plane_bsize];
-  int i, j;
   const int16_t *src_diff;
-  txfrm_block_to_raster_xy(plane_bsize, tx_size, block, &i, &j);
-  src_diff = &p->src_diff[4 * (j * diff_stride + i)];
+  src_diff = &p->src_diff[4 * (row * diff_stride + col)];
 
 #if CONFIG_VP9_HIGHBITDEPTH
   if (xd->cur_buf->flags & YV12_FLAG_HIGHBITDEPTH) {
@@ -595,22 +588,20 @@ void vp9_xform_quant(MACROBLOCK *x, int plane, int block,
   }
 }
 
-static void encode_block(int plane, int block, BLOCK_SIZE plane_bsize,
+static void encode_block(int plane, int block, int row, int col,
+                         BLOCK_SIZE plane_bsize,
                          TX_SIZE tx_size, void *arg) {
   struct encode_b_args *const args = arg;
   MACROBLOCK *const x = args->x;
   MACROBLOCKD *const xd = &x->e_mbd;
-  struct optimize_ctx *const ctx = args->ctx;
   struct macroblock_plane *const p = &x->plane[plane];
   struct macroblockd_plane *const pd = &xd->plane[plane];
   tran_low_t *const dqcoeff = BLOCK_OFFSET(pd->dqcoeff, block);
-  int i, j;
   uint8_t *dst;
   ENTROPY_CONTEXT *a, *l;
-  txfrm_block_to_raster_xy(plane_bsize, tx_size, block, &i, &j);
-  dst = &pd->dst.buf[4 * j * pd->dst.stride + 4 * i];
-  a = &ctx->ta[plane][i];
-  l = &ctx->tl[plane][j];
+  dst = &pd->dst.buf[4 * row * pd->dst.stride + 4 * col];
+  a = &args->ta[col];
+  l = &args->tl[row];
 
   // TODO(jingning): per transformed block zero forcing only enabled for
   // luma component. will integrate chroma components as well.
@@ -629,17 +620,17 @@ static void encode_block(int plane, int block, BLOCK_SIZE plane_bsize,
         *a = *l = 0;
         return;
       } else {
-        vp9_xform_quant_fp(x, plane, block, plane_bsize, tx_size);
+        vp9_xform_quant_fp(x, plane, block, row, col, plane_bsize, tx_size);
       }
     } else {
       if (max_txsize_lookup[plane_bsize] == tx_size) {
         int txfm_blk_index = (plane << 2) + (block >> (tx_size << 1));
         if (x->skip_txfm[txfm_blk_index] == SKIP_TXFM_NONE) {
           // full forward transform and quantization
-          vp9_xform_quant(x, plane, block, plane_bsize, tx_size);
+          vp9_xform_quant(x, plane, block, row, col, plane_bsize, tx_size);
         } else if (x->skip_txfm[txfm_blk_index] == SKIP_TXFM_AC_ONLY) {
           // fast path forward transform and quantization
-          vp9_xform_quant_dc(x, plane, block, plane_bsize, tx_size);
+          vp9_xform_quant_dc(x, plane, block, row, col, plane_bsize, tx_size);
         } else {
           // skip forward transform
           p->eobs[block] = 0;
@@ -647,14 +638,14 @@ static void encode_block(int plane, int block, BLOCK_SIZE plane_bsize,
           return;
         }
       } else {
-        vp9_xform_quant(x, plane, block, plane_bsize, tx_size);
+        vp9_xform_quant(x, plane, block, row, col, plane_bsize, tx_size);
       }
     }
   }
 
   if (x->optimize && (!x->skip_recode || !x->skip_optimize)) {
     const int ctx = combine_entropy_contexts(*a, *l);
-    *a = *l = optimize_b(x, plane, block, tx_size, ctx) > 0;
+    *a = *l = vp9_optimize_b(x, plane, block, tx_size, ctx) > 0;
   } else {
     *a = *l = p->eobs[block] > 0;
   }
@@ -715,19 +706,18 @@ static void encode_block(int plane, int block, BLOCK_SIZE plane_bsize,
   }
 }
 
-static void encode_block_pass1(int plane, int block, BLOCK_SIZE plane_bsize,
+static void encode_block_pass1(int plane, int block, int row, int col,
+                               BLOCK_SIZE plane_bsize,
                                TX_SIZE tx_size, void *arg) {
   MACROBLOCK *const x = (MACROBLOCK *)arg;
   MACROBLOCKD *const xd = &x->e_mbd;
   struct macroblock_plane *const p = &x->plane[plane];
   struct macroblockd_plane *const pd = &xd->plane[plane];
   tran_low_t *const dqcoeff = BLOCK_OFFSET(pd->dqcoeff, block);
-  int i, j;
   uint8_t *dst;
-  txfrm_block_to_raster_xy(plane_bsize, tx_size, block, &i, &j);
-  dst = &pd->dst.buf[4 * j * pd->dst.stride + 4 * i];
+  dst = &pd->dst.buf[4 * row * pd->dst.stride + 4 * col];
 
-  vp9_xform_quant(x, plane, block, plane_bsize, tx_size);
+  vp9_xform_quant(x, plane, block, row, col, plane_bsize, tx_size);
 
   if (p->eobs[block] > 0) {
 #if CONFIG_VP9_HIGHBITDEPTH
@@ -750,7 +740,7 @@ void vp9_encode_sb(MACROBLOCK *x, BLOCK_SIZE bsize) {
   MACROBLOCKD *const xd = &x->e_mbd;
   struct optimize_ctx ctx;
   MODE_INFO *mi = xd->mi[0];
-  struct encode_b_args arg = {x, &ctx, &mi->skip};
+  struct encode_b_args arg = {x, 1, NULL, NULL, &mi->skip};
   int plane;
 
   mi->skip = 1;
@@ -767,14 +757,20 @@ void vp9_encode_sb(MACROBLOCK *x, BLOCK_SIZE bsize) {
       const TX_SIZE tx_size = plane ? get_uv_tx_size(mi, pd) : mi->tx_size;
       vp9_get_entropy_contexts(bsize, tx_size, pd,
                                ctx.ta[plane], ctx.tl[plane]);
+      arg.enable_coeff_opt = 1;
+    } else {
+      arg.enable_coeff_opt = 0;
     }
+    arg.ta = ctx.ta[plane];
+    arg.tl = ctx.tl[plane];
 
     vp9_foreach_transformed_block_in_plane(xd, bsize, plane, encode_block,
                                            &arg);
   }
 }
 
-void vp9_encode_block_intra(int plane, int block, BLOCK_SIZE plane_bsize,
+void vp9_encode_block_intra(int plane, int block, int row, int col,
+                            BLOCK_SIZE plane_bsize,
                             TX_SIZE tx_size, void *arg) {
   struct encode_b_args* const args = arg;
   MACROBLOCK *const x = args->x;
@@ -795,18 +791,15 @@ void vp9_encode_block_intra(int plane, int block, BLOCK_SIZE plane_bsize,
   uint16_t *eob = &p->eobs[block];
   const int src_stride = p->src.stride;
   const int dst_stride = pd->dst.stride;
-  int i, j;
-  struct optimize_ctx *const ctx = args->ctx;
   ENTROPY_CONTEXT *a = NULL;
   ENTROPY_CONTEXT *l = NULL;
   int entropy_ctx = 0;
-  txfrm_block_to_raster_xy(plane_bsize, tx_size, block, &i, &j);
-  dst = &pd->dst.buf[4 * (j * dst_stride + i)];
-  src = &p->src.buf[4 * (j * src_stride + i)];
-  src_diff = &p->src_diff[4 * (j * diff_stride + i)];
-  if (args->ctx != NULL) {
-    a = &ctx->ta[plane][i];
-    l = &ctx->tl[plane][j];
+  dst = &pd->dst.buf[4 * (row * dst_stride + col)];
+  src = &p->src.buf[4 * (row * src_stride + col)];
+  src_diff = &p->src_diff[4 * (row * diff_stride + col)];
+  if (args->enable_coeff_opt) {
+    a = &args->ta[col];
+    l = &args->tl[row];
     entropy_ctx = combine_entropy_contexts(*a, *l);
   }
 
@@ -826,7 +819,7 @@ void vp9_encode_block_intra(int plane, int block, BLOCK_SIZE plane_bsize,
 
   vp9_predict_intra_block(xd, bwl, tx_size, mode, x->skip_encode ? src : dst,
                           x->skip_encode ? src_stride : dst_stride,
-                          dst, dst_stride, i, j, plane);
+                          dst, dst_stride, col, row, plane);
 
 #if CONFIG_VP9_HIGHBITDEPTH
   if (xd->cur_buf->flags & YV12_FLAG_HIGHBITDEPTH) {
@@ -927,8 +920,8 @@ void vp9_encode_block_intra(int plane, int block, BLOCK_SIZE plane_bsize,
                              pd->dequant, eob, scan_order->scan,
                              scan_order->iscan);
       }
-      if (args->ctx != NULL && !x->skip_recode) {
-       *a = *l = optimize_b(x, plane, block, tx_size, entropy_ctx) > 0;
+      if (args->enable_coeff_opt && !x->skip_recode) {
+       *a = *l = vp9_optimize_b(x, plane, block, tx_size, entropy_ctx) > 0;
       }
       if (!x->skip_encode && *eob)
         vp9_idct32x32_add(dqcoeff, dst, dst_stride, *eob);
@@ -943,8 +936,8 @@ void vp9_encode_block_intra(int plane, int block, BLOCK_SIZE plane_bsize,
                        pd->dequant, eob, scan_order->scan,
                        scan_order->iscan);
       }
-      if (args->ctx != NULL && !x->skip_recode) {
-        *a = *l = optimize_b(x, plane, block, tx_size, entropy_ctx) > 0;
+      if (args->enable_coeff_opt && !x->skip_recode) {
+        *a = *l = vp9_optimize_b(x, plane, block, tx_size, entropy_ctx) > 0;
       }
       if (!x->skip_encode && *eob)
         vp9_iht16x16_add(tx_type, dqcoeff, dst, dst_stride, *eob);
@@ -959,8 +952,8 @@ void vp9_encode_block_intra(int plane, int block, BLOCK_SIZE plane_bsize,
                        pd->dequant, eob, scan_order->scan,
                        scan_order->iscan);
       }
-      if (args->ctx != NULL && !x->skip_recode) {
-        *a = *l = optimize_b(x, plane, block, tx_size, entropy_ctx) > 0;
+      if (args->enable_coeff_opt && !x->skip_recode) {
+        *a = *l = vp9_optimize_b(x, plane, block, tx_size, entropy_ctx) > 0;
       }
       if (!x->skip_encode && *eob)
         vp9_iht8x8_add(tx_type, dqcoeff, dst, dst_stride, *eob);
@@ -978,8 +971,8 @@ void vp9_encode_block_intra(int plane, int block, BLOCK_SIZE plane_bsize,
                        pd->dequant, eob, scan_order->scan,
                        scan_order->iscan);
       }
-      if (args->ctx != NULL && !x->skip_recode) {
-        *a = *l = optimize_b(x, plane, block, tx_size, entropy_ctx) > 0;
+      if (args->enable_coeff_opt && !x->skip_recode) {
+        *a = *l = vp9_optimize_b(x, plane, block, tx_size, entropy_ctx) > 0;
       }
       if (!x->skip_encode && *eob) {
         if (tx_type == DCT_DCT)
@@ -1003,7 +996,9 @@ void vp9_encode_intra_block_plane(MACROBLOCK *x, BLOCK_SIZE bsize, int plane,
                                   int enable_optimize_b) {
   const MACROBLOCKD *const xd = &x->e_mbd;
   struct optimize_ctx ctx;
-  struct encode_b_args arg = {x, NULL, &xd->mi[0]->skip};
+  struct encode_b_args arg = {x, enable_optimize_b,
+                              ctx.ta[plane], ctx.tl[plane],
+                              &xd->mi[0]->skip};
 
   if (enable_optimize_b && x->optimize &&
       (!x->skip_recode || !x->skip_optimize)) {
@@ -1011,7 +1006,8 @@ void vp9_encode_intra_block_plane(MACROBLOCK *x, BLOCK_SIZE bsize, int plane,
     const TX_SIZE tx_size = plane ? get_uv_tx_size(xd->mi[0], pd) :
         xd->mi[0]->tx_size;
     vp9_get_entropy_contexts(bsize, tx_size, pd, ctx.ta[plane], ctx.tl[plane]);
-    arg.ctx = &ctx;
+  } else {
+    arg.enable_coeff_opt = 0;
   }
 
   vp9_foreach_transformed_block_in_plane(xd, bsize, plane,
