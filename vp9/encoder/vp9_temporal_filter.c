@@ -401,7 +401,7 @@ static void temporal_filter_iterate_c(VP9_COMP *cpi,
               frames[frame]->y_buffer + mb_y_offset,
               frames[frame]->y_stride);
 
-          // Assign higher weight to matching MB if it's error
+          // Assign higher weight to matching MB if its error
           // score is lower. If not applying MC default behavior
           // is to weight all MBs equal.
           filter_weight = err < thresh_low
@@ -433,9 +433,8 @@ static void temporal_filter_iterate_c(VP9_COMP *cpi,
             vp9_highbd_temporal_filter_apply_c(f->u_buffer + mb_uv_offset,
                                                f->uv_stride, predictor + 256,
                                                mb_uv_width, mb_uv_height,
-                                               adj_strength,
-                                               filter_weight, accumulator + 256,
-                                               count + 256);
+                                               adj_strength, filter_weight,
+                                               accumulator + 256, count + 256);
             vp9_highbd_temporal_filter_apply_c(f->v_buffer + mb_uv_offset,
                                                f->uv_stride, predictor + 512,
                                                mb_uv_width, mb_uv_height,

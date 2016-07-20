@@ -301,6 +301,9 @@ typedef struct IMAGE_STAT {
   double worst;
 } ImageStat;
 
+// Kf noise filtering currently disabled by default in build.
+// #define ENABLE_KF_DENOISE 1
+
 #define CPB_WINDOW_SIZE 4
 #define FRAME_WINDOW_SIZE 128
 #define SAMPLE_RATE_GRACE_P 0.015
@@ -381,6 +384,11 @@ typedef struct VP9_COMP {
   YV12_BUFFER_CONFIG scaled_source;
   YV12_BUFFER_CONFIG *unscaled_last_source;
   YV12_BUFFER_CONFIG scaled_last_source;
+#ifdef ENABLE_KF_DENOISE
+  YV12_BUFFER_CONFIG raw_unscaled_source;
+  YV12_BUFFER_CONFIG raw_scaled_source;
+#endif
+  YV12_BUFFER_CONFIG *raw_source_frame;
 
   TileDataEnc *tile_data;
   int allocated_tiles;  // Keep track of memory allocated for tiles.
@@ -408,7 +416,7 @@ typedef struct VP9_COMP {
   YV12_BUFFER_CONFIG last_frame_uf;
 
   TOKENEXTRA *tile_tok[4][1 << 6];
-  unsigned int tok_count[4][1 << 6];
+  uint32_t tok_count[4][1 << 6];
 
   // Ambient reconstruction err target for force key frames
   int64_t ambient_err;
@@ -440,7 +448,7 @@ typedef struct VP9_COMP {
 
   SPEED_FEATURES sf;
 
-  unsigned int max_mv_magnitude;
+  uint32_t max_mv_magnitude;
   int mv_step_param;
 
   int allow_comp_inter_inter;
@@ -452,10 +460,10 @@ typedef struct VP9_COMP {
   // clips, and 300 for < HD clips.
   int encode_breakout;
 
-  unsigned char *segmentation_map;
+  uint8_t *segmentation_map;
 
   // segment threashold for encode breakout
-  int  segment_encode_breakout[MAX_SEGMENTS];
+  int segment_encode_breakout[MAX_SEGMENTS];
 
   CYCLIC_REFRESH *cyclic_refresh;
   ActiveMap active_map;
@@ -477,11 +485,10 @@ typedef struct VP9_COMP {
 
   YV12_BUFFER_CONFIG alt_ref_buffer;
 
-
 #if CONFIG_INTERNAL_STATS
   unsigned int mode_chosen_counts[MAX_MODES];
 
-  int    count;
+  int count;
   uint64_t total_sq_error;
   uint64_t total_samples;
   ImageStat psnr;
