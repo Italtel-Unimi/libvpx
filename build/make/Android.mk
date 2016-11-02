@@ -29,11 +29,6 @@
 # include $(CLEAR_VARS)
 # include jni/libvpx/build/make/Android.mk
 #
-# There are currently two TARGET_ARCH_ABI targets for ARM.
-# armeabi and armeabi-v7a.  armeabi-v7a is selected by creating an
-# Application.mk in the jni directory that contains:
-# APP_ABI := armeabi-v7a
-#
 # By default libvpx will detect at runtime the existance of NEON extension.
 # For this we import the 'cpufeatures' module from the NDK sources.
 # libvpx can also be configured without this runtime detection method.
@@ -42,12 +37,28 @@
 #     --disable-neon-asm
 # will remove any NEON dependency.
 
-# To change to building armeabi, run ./libvpx/configure again, but with
-# --target=armv6-android-gcc and modify the Application.mk file to
-# set APP_ABI := armeabi
 #
 # Running ndk-build will build libvpx and include it in your project.
 #
+
+# Alternatively, building the examples and unit tests can be accomplished in the
+# following way:
+#
+# Create a standalone toolchain from the NDK:
+# https://developer.android.com/ndk/guides/standalone_toolchain.html
+#
+# For example - to test on arm64 devices with clang:
+# $NDK/build/tools/make_standalone_toolchain.py \
+#   --arch arm64 --install-dir=/tmp/my-android-toolchain
+# export PATH=/tmp/my-android-toolchain/bin:$PATH
+# CROSS=aarch64-linux-android- CC=clang CXX=clang++ /path/to/libvpx/configure \
+#   --target=arm64-android-gcc
+#
+# Push the resulting binaries to a device and run them:
+# adb push test_libvpx /data/tmp/test_libvpx
+# adb shell /data/tmp/test_libvpx --gtest_filter=\*Sixtap\*
+#
+# Make sure to push the test data as well and set LIBVPX_TEST_DATA
 
 CONFIG_DIR := $(LOCAL_PATH)/
 LIBVPX_PATH := $(LOCAL_PATH)/libvpx
@@ -59,11 +70,8 @@ ASM_CNV_PATH := $(LOCAL_PATH)/$(ASM_CNV_PATH_LOCAL)
 ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
   include $(CONFIG_DIR)libs-armv7-android-gcc.mk
   LOCAL_ARM_MODE := arm
-else ifeq  ($(TARGET_ARCH_ABI),armeabi)
-  include $(CONFIG_DIR)libs-armv6-android-gcc.mk
-  LOCAL_ARM_MODE := arm
 else ifeq  ($(TARGET_ARCH_ABI),arm64-v8a)
-  include $(CONFIG_DIR)libs-armv8-android-gcc.mk
+  include $(CONFIG_DIR)libs-arm64-android-gcc.mk
   LOCAL_ARM_MODE := arm
 else ifeq ($(TARGET_ARCH_ABI),x86)
   include $(CONFIG_DIR)libs-x86-android-gcc.mk
@@ -93,8 +101,8 @@ LOCAL_CFLAGS := -O3
 # like x86inc.asm and x86_abi_support.asm
 LOCAL_ASMFLAGS := -I$(LIBVPX_PATH)
 
-.PRECIOUS: %.asm.s
-$(ASM_CNV_PATH)/libvpx/%.asm.s: $(LIBVPX_PATH)/%.asm
+.PRECIOUS: %.asm.S
+$(ASM_CNV_PATH)/libvpx/%.asm.S: $(LIBVPX_PATH)/%.asm
 	@mkdir -p $(dir $@)
 	@$(CONFIG_DIR)$(ASM_CONVERSION) <$< > $@
 
@@ -124,7 +132,7 @@ endif
 
 # Pull out assembly files, splitting NEON from the rest.  This is
 # done to specify that the NEON assembly files use NEON assembler flags.
-# x86 assembly matches %.asm, arm matches %.asm.s
+# x86 assembly matches %.asm, arm matches %.asm.S
 
 # x86:
 
@@ -132,12 +140,12 @@ CODEC_SRCS_ASM_X86 = $(filter %.asm, $(CODEC_SRCS_UNIQUE))
 LOCAL_SRC_FILES += $(foreach file, $(CODEC_SRCS_ASM_X86), libvpx/$(file))
 
 # arm:
-CODEC_SRCS_ASM_ARM_ALL = $(filter %.asm.s, $(CODEC_SRCS_UNIQUE))
+CODEC_SRCS_ASM_ARM_ALL = $(filter %.asm.S, $(CODEC_SRCS_UNIQUE))
 CODEC_SRCS_ASM_ARM = $(foreach v, \
                      $(CODEC_SRCS_ASM_ARM_ALL), \
                      $(if $(findstring neon,$(v)),,$(v)))
-CODEC_SRCS_ASM_ADS2GAS = $(patsubst %.s, \
-                         $(ASM_CNV_PATH_LOCAL)/libvpx/%.s, \
+CODEC_SRCS_ASM_ADS2GAS = $(patsubst %.S, \
+                         $(ASM_CNV_PATH_LOCAL)/libvpx/%.S, \
                          $(CODEC_SRCS_ASM_ARM))
 LOCAL_SRC_FILES += $(CODEC_SRCS_ASM_ADS2GAS)
 
@@ -145,18 +153,19 @@ ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
   CODEC_SRCS_ASM_NEON = $(foreach v, \
                         $(CODEC_SRCS_ASM_ARM_ALL),\
                         $(if $(findstring neon,$(v)),$(v),))
-  CODEC_SRCS_ASM_NEON_ADS2GAS = $(patsubst %.s, \
-                                $(ASM_CNV_PATH_LOCAL)/libvpx/%.s, \
+  CODEC_SRCS_ASM_NEON_ADS2GAS = $(patsubst %.S, \
+                                $(ASM_CNV_PATH_LOCAL)/libvpx/%.S, \
                                 $(CODEC_SRCS_ASM_NEON))
-  LOCAL_SRC_FILES += $(patsubst %.s, \
-                     %.s.neon, \
+  LOCAL_SRC_FILES += $(patsubst %.S, \
+                     %.S.neon, \
                      $(CODEC_SRCS_ASM_NEON_ADS2GAS))
 endif
 
 LOCAL_CFLAGS += \
     -DHAVE_CONFIG_H=vpx_config.h \
     -I$(LIBVPX_PATH) \
-    -I$(ASM_CNV_PATH)
+    -I$(ASM_CNV_PATH) \
+    -I$(ASM_CNV_PATH)/libvpx
 
 LOCAL_MODULE := libvpx
 
@@ -177,7 +186,8 @@ endif
 $$(rtcd_dep_template_SRCS): vpx_scale_rtcd.h
 $$(rtcd_dep_template_SRCS): vpx_dsp_rtcd.h
 
-ifneq ($(findstring $(TARGET_ARCH_ABI),x86 x86_64),)
+rtcd_dep_template_CONFIG_ASM_ABIS := x86 x86_64 armeabi-v7a
+ifneq ($(findstring $(TARGET_ARCH_ABI),$(rtcd_dep_template_CONFIG_ASM_ABIS)),)
 $$(rtcd_dep_template_SRCS): vpx_config.asm
 endif
 endef

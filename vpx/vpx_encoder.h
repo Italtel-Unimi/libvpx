@@ -31,531 +31,495 @@ extern "C" {
 
 #include "./vpx_codec.h"
 
-  /*! Temporal Scalability: Maximum length of the sequence defining frame
-   * layer membership
-   */
+/*! Temporal Scalability: Maximum length of the sequence defining frame
+ * layer membership
+ */
 #define VPX_TS_MAX_PERIODICITY 16
 
-  /*! Temporal Scalability: Maximum number of coding layers */
-#define VPX_TS_MAX_LAYERS       5
+/*! Temporal Scalability: Maximum number of coding layers */
+#define VPX_TS_MAX_LAYERS 5
 
-  /*!\deprecated Use #VPX_TS_MAX_PERIODICITY instead. */
+/*!\deprecated Use #VPX_TS_MAX_PERIODICITY instead. */
 #define MAX_PERIODICITY VPX_TS_MAX_PERIODICITY
 
 /*! Temporal+Spatial Scalability: Maximum number of coding layers */
-#define VPX_MAX_LAYERS  12  // 3 temporal + 4 spatial layers are allowed.
+#define VPX_MAX_LAYERS 12  // 3 temporal + 4 spatial layers are allowed.
 
 /*!\deprecated Use #VPX_MAX_LAYERS instead. */
-#define MAX_LAYERS    VPX_MAX_LAYERS  // 3 temporal + 4 spatial layers allowed.
+#define MAX_LAYERS VPX_MAX_LAYERS  // 3 temporal + 4 spatial layers allowed.
 
 /*! Spatial Scalability: Maximum number of coding layers */
-#define VPX_SS_MAX_LAYERS       5
+#define VPX_SS_MAX_LAYERS 5
 
 /*! Spatial Scalability: Default number of coding layers */
-#define VPX_SS_DEFAULT_LAYERS       1
+#define VPX_SS_DEFAULT_LAYERS 1
 
-  /*!\brief Current ABI version number
-   *
-   * \internal
-   * If this file is altered in any way that changes the ABI, this value
-   * must be bumped.  Examples include, but are not limited to, changing
-   * types, removing or reassigning enums, adding/removing/rearranging
-   * fields to structures
-   */
-#define VPX_ENCODER_ABI_VERSION (5 + VPX_CODEC_ABI_VERSION) /**<\hideinitializer*/
+/*!\brief Current ABI version number
+ *
+ * \internal
+ * If this file is altered in any way that changes the ABI, this value
+ * must be bumped.  Examples include, but are not limited to, changing
+ * types, removing or reassigning enums, adding/removing/rearranging
+ * fields to structures
+ */
+#define VPX_ENCODER_ABI_VERSION \
+  (5 + VPX_CODEC_ABI_VERSION) /**<\hideinitializer*/
 
+/*! \brief Encoder capabilities bitfield
+ *
+ *  Each encoder advertises the capabilities it supports as part of its
+ *  ::vpx_codec_iface_t interface structure. Capabilities are extra
+ *  interfaces or functionality, and are not required to be supported
+ *  by an encoder.
+ *
+ *  The available flags are specified by VPX_CODEC_CAP_* defines.
+ */
+#define VPX_CODEC_CAP_PSNR 0x10000 /**< Can issue PSNR packets */
 
-  /*! \brief Encoder capabilities bitfield
-   *
-   *  Each encoder advertises the capabilities it supports as part of its
-   *  ::vpx_codec_iface_t interface structure. Capabilities are extra
-   *  interfaces or functionality, and are not required to be supported
-   *  by an encoder.
-   *
-   *  The available flags are specified by VPX_CODEC_CAP_* defines.
-   */
-#define VPX_CODEC_CAP_PSNR  0x10000 /**< Can issue PSNR packets */
-
-  /*! Can output one partition at a time. Each partition is returned in its
-   *  own VPX_CODEC_CX_FRAME_PKT, with the FRAME_IS_FRAGMENT flag set for
-   *  every partition but the last. In this mode all frames are always
-   *  returned partition by partition.
-   */
-#define VPX_CODEC_CAP_OUTPUT_PARTITION  0x20000
+/*! Can output one partition at a time. Each partition is returned in its
+ *  own VPX_CODEC_CX_FRAME_PKT, with the FRAME_IS_FRAGMENT flag set for
+ *  every partition but the last. In this mode all frames are always
+ *  returned partition by partition.
+ */
+#define VPX_CODEC_CAP_OUTPUT_PARTITION 0x20000
 
 /*! Can support input images at greater than 8 bitdepth.
  */
-#define VPX_CODEC_CAP_HIGHBITDEPTH  0x40000
+#define VPX_CODEC_CAP_HIGHBITDEPTH 0x40000
 
-  /*! \brief Initialization-time Feature Enabling
-   *
-   *  Certain codec features must be known at initialization time, to allow
-   *  for proper memory allocation.
-   *
-   *  The available flags are specified by VPX_CODEC_USE_* defines.
-   */
-#define VPX_CODEC_USE_PSNR  0x10000 /**< Calculate PSNR on each frame */
-#define VPX_CODEC_USE_OUTPUT_PARTITION  0x20000 /**< Make the encoder output one
-  partition at a time. */
+/*! \brief Initialization-time Feature Enabling
+ *
+ *  Certain codec features must be known at initialization time, to allow
+ *  for proper memory allocation.
+ *
+ *  The available flags are specified by VPX_CODEC_USE_* defines.
+ */
+#define VPX_CODEC_USE_PSNR 0x10000 /**< Calculate PSNR on each frame */
+/*!\brief Make the encoder output one  partition at a time. */
+#define VPX_CODEC_USE_OUTPUT_PARTITION 0x20000
 #define VPX_CODEC_USE_HIGHBITDEPTH 0x40000 /**< Use high bitdepth */
 
+/*!\brief Generic fixed size buffer structure
+ *
+ * This structure is able to hold a reference to any fixed size buffer.
+ */
+typedef struct vpx_fixed_buf {
+  void *buf;       /**< Pointer to the data */
+  size_t sz;       /**< Length of the buffer, in chars */
+} vpx_fixed_buf_t; /**< alias for struct vpx_fixed_buf */
 
-  /*!\brief Generic fixed size buffer structure
-   *
-   * This structure is able to hold a reference to any fixed size buffer.
-   */
-  typedef struct vpx_fixed_buf {
-    void          *buf; /**< Pointer to the data */
-    size_t         sz;  /**< Length of the buffer, in chars */
-  } vpx_fixed_buf_t; /**< alias for struct vpx_fixed_buf */
+/*!\brief Time Stamp Type
+ *
+ * An integer, which when multiplied by the stream's time base, provides
+ * the absolute time of a sample.
+ */
+typedef int64_t vpx_codec_pts_t;
 
+/*!\brief Compressed Frame Flags
+ *
+ * This type represents a bitfield containing information about a compressed
+ * frame that may be useful to an application. The most significant 16 bits
+ * can be used by an algorithm to provide additional detail, for example to
+ * support frame types that are codec specific (MPEG-1 D-frames for example)
+ */
+typedef uint32_t vpx_codec_frame_flags_t;
+#define VPX_FRAME_IS_KEY 0x1 /**< frame is the start of a GOP */
+/*!\brief frame can be dropped without affecting the stream (no future frame
+ * depends on this one) */
+#define VPX_FRAME_IS_DROPPABLE 0x2
+/*!\brief frame should be decoded but will not be shown */
+#define VPX_FRAME_IS_INVISIBLE 0x4
+/*!\brief this is a fragment of the encoded frame */
+#define VPX_FRAME_IS_FRAGMENT 0x8
 
-  /*!\brief Time Stamp Type
-   *
-   * An integer, which when multiplied by the stream's time base, provides
-   * the absolute time of a sample.
-   */
-  typedef int64_t vpx_codec_pts_t;
+/*!\brief Error Resilient flags
+ *
+ * These flags define which error resilient features to enable in the
+ * encoder. The flags are specified through the
+ * vpx_codec_enc_cfg::g_error_resilient variable.
+ */
+typedef uint32_t vpx_codec_er_flags_t;
+/*!\brief Improve resiliency against losses of whole frames */
+#define VPX_ERROR_RESILIENT_DEFAULT 0x1
+/*!\brief The frame partitions are independently decodable by the bool decoder,
+ * meaning that partitions can be decoded even though earlier partitions have
+ * been lost. Note that intra prediction is still done over the partition
+ * boundary. */
+#define VPX_ERROR_RESILIENT_PARTITIONS 0x2
 
-
-  /*!\brief Compressed Frame Flags
-   *
-   * This type represents a bitfield containing information about a compressed
-   * frame that may be useful to an application. The most significant 16 bits
-   * can be used by an algorithm to provide additional detail, for example to
-   * support frame types that are codec specific (MPEG-1 D-frames for example)
-   */
-  typedef uint32_t vpx_codec_frame_flags_t;
-#define VPX_FRAME_IS_KEY       0x1 /**< frame is the start of a GOP */
-#define VPX_FRAME_IS_DROPPABLE 0x2 /**< frame can be dropped without affecting
-  the stream (no future frame depends on
-              this one) */
-#define VPX_FRAME_IS_INVISIBLE 0x4 /**< frame should be decoded but will not
-  be shown */
-#define VPX_FRAME_IS_FRAGMENT  0x8 /**< this is a fragment of the encoded
-  frame */
-
-  /*!\brief Error Resilient flags
-   *
-   * These flags define which error resilient features to enable in the
-   * encoder. The flags are specified through the
-   * vpx_codec_enc_cfg::g_error_resilient variable.
-   */
-  typedef uint32_t vpx_codec_er_flags_t;
-#define VPX_ERROR_RESILIENT_DEFAULT     0x1 /**< Improve resiliency against
-  losses of whole frames */
-#define VPX_ERROR_RESILIENT_PARTITIONS  0x2 /**< The frame partitions are
-  independently decodable by the
-  bool decoder, meaning that
-  partitions can be decoded even
-  though earlier partitions have
-  been lost. Note that intra
-  prediction is still done over
-  the partition boundary. */
-
-  /*!\brief Encoder output packet variants
-   *
-   * This enumeration lists the different kinds of data packets that can be
-   * returned by calls to vpx_codec_get_cx_data(). Algorithms \ref MAY
-   * extend this list to provide additional functionality.
-   */
-  enum vpx_codec_cx_pkt_kind {
-    VPX_CODEC_CX_FRAME_PKT,    /**< Compressed video frame */
-    VPX_CODEC_STATS_PKT,       /**< Two-pass statistics for this frame */
-    VPX_CODEC_FPMB_STATS_PKT,  /**< first pass mb statistics for this frame */
-    VPX_CODEC_PSNR_PKT,        /**< PSNR statistics for this frame */
-    // Spatial SVC is still experimental and may be removed before the next ABI
-    // bump.
+/*!\brief Encoder output packet variants
+ *
+ * This enumeration lists the different kinds of data packets that can be
+ * returned by calls to vpx_codec_get_cx_data(). Algorithms \ref MAY
+ * extend this list to provide additional functionality.
+ */
+enum vpx_codec_cx_pkt_kind {
+  VPX_CODEC_CX_FRAME_PKT,   /**< Compressed video frame */
+  VPX_CODEC_STATS_PKT,      /**< Two-pass statistics for this frame */
+  VPX_CODEC_FPMB_STATS_PKT, /**< first pass mb statistics for this frame */
+  VPX_CODEC_PSNR_PKT,       /**< PSNR statistics for this frame */
+// Spatial SVC is still experimental and may be removed before the next ABI
+// bump.
 #if VPX_ENCODER_ABI_VERSION > (5 + VPX_CODEC_ABI_VERSION)
-    VPX_CODEC_SPATIAL_SVC_LAYER_SIZES, /**< Sizes for each layer in this frame*/
-    VPX_CODEC_SPATIAL_SVC_LAYER_PSNR, /**< PSNR for each layer in this frame*/
+  VPX_CODEC_SPATIAL_SVC_LAYER_SIZES, /**< Sizes for each layer in this frame*/
+  VPX_CODEC_SPATIAL_SVC_LAYER_PSNR,  /**< PSNR for each layer in this frame*/
 #endif
-    VPX_CODEC_CUSTOM_PKT = 256 /**< Algorithm extensions  */
-  };
+  VPX_CODEC_CUSTOM_PKT = 256 /**< Algorithm extensions  */
+};
 
-
-  /*!\brief Encoder output packet
-   *
-   * This structure contains the different kinds of output data the encoder
-   * may produce while compressing a frame.
-   */
-  typedef struct vpx_codec_cx_pkt {
-    enum vpx_codec_cx_pkt_kind  kind; /**< packet variant */
-    union {
-      struct {
-        void                    *buf;      /**< compressed data buffer */
-        size_t                   sz;       /**< length of compressed data */
-        vpx_codec_pts_t          pts;      /**< time stamp to show frame
-                                                    (in timebase units) */
-        unsigned long            duration; /**< duration to show frame
-                                                    (in timebase units) */
-        vpx_codec_frame_flags_t  flags;    /**< flags for this frame */
-        int                      partition_id; /**< the partition id
-                                              defines the decoding order
-                                              of the partitions. Only
-                                              applicable when "output partition"
-                                              mode is enabled. First partition
-                                              has id 0.*/
-
-      } frame;  /**< data for compressed frame packet */
-      vpx_fixed_buf_t twopass_stats;  /**< data for two-pass packet */
-      vpx_fixed_buf_t firstpass_mb_stats; /**< first pass mb packet */
-      struct vpx_psnr_pkt {
-        unsigned int samples[4];  /**< Number of samples, total/y/u/v */
-        uint64_t     sse[4];      /**< sum squared error, total/y/u/v */
-        double       psnr[4];     /**< PSNR, total/y/u/v */
-      } psnr;                       /**< data for PSNR packet */
-      vpx_fixed_buf_t raw;     /**< data for arbitrary packets */
-      // Spatial SVC is still experimental and may be removed before the next
-      // ABI bump.
+/*!\brief Encoder output packet
+ *
+ * This structure contains the different kinds of output data the encoder
+ * may produce while compressing a frame.
+ */
+typedef struct vpx_codec_cx_pkt {
+  enum vpx_codec_cx_pkt_kind kind; /**< packet variant */
+  union {
+    struct {
+      void *buf; /**< compressed data buffer */
+      size_t sz; /**< length of compressed data */
+      /*!\brief time stamp to show frame (in timebase units) */
+      vpx_codec_pts_t pts;
+      /*!\brief duration to show frame (in timebase units) */
+      unsigned long duration;
+      vpx_codec_frame_flags_t flags; /**< flags for this frame */
+      /*!\brief the partition id defines the decoding order of the partitions.
+       * Only applicable when "output partition" mode is enabled. First
+       * partition has id 0.*/
+      int partition_id;
+    } frame;                            /**< data for compressed frame packet */
+    vpx_fixed_buf_t twopass_stats;      /**< data for two-pass packet */
+    vpx_fixed_buf_t firstpass_mb_stats; /**< first pass mb packet */
+    struct vpx_psnr_pkt {
+      unsigned int samples[4]; /**< Number of samples, total/y/u/v */
+      uint64_t sse[4];         /**< sum squared error, total/y/u/v */
+      double psnr[4];          /**< PSNR, total/y/u/v */
+    } psnr;                    /**< data for PSNR packet */
+    vpx_fixed_buf_t raw;       /**< data for arbitrary packets */
+// Spatial SVC is still experimental and may be removed before the next
+// ABI bump.
 #if VPX_ENCODER_ABI_VERSION > (5 + VPX_CODEC_ABI_VERSION)
-      size_t layer_sizes[VPX_SS_MAX_LAYERS];
-      struct vpx_psnr_pkt layer_psnr[VPX_SS_MAX_LAYERS];
+    size_t layer_sizes[VPX_SS_MAX_LAYERS];
+    struct vpx_psnr_pkt layer_psnr[VPX_SS_MAX_LAYERS];
 #endif
 
-      /* This packet size is fixed to allow codecs to extend this
-       * interface without having to manage storage for raw packets,
-       * i.e., if it's smaller than 128 bytes, you can store in the
-       * packet list directly.
-       */
-      char pad[128 - sizeof(enum vpx_codec_cx_pkt_kind)]; /**< fixed sz */
-    } data; /**< packet data */
-  } vpx_codec_cx_pkt_t; /**< alias for struct vpx_codec_cx_pkt */
+    /* This packet size is fixed to allow codecs to extend this
+     * interface without having to manage storage for raw packets,
+     * i.e., if it's smaller than 128 bytes, you can store in the
+     * packet list directly.
+     */
+    char pad[128 - sizeof(enum vpx_codec_cx_pkt_kind)]; /**< fixed sz */
+  } data;                                               /**< packet data */
+} vpx_codec_cx_pkt_t; /**< alias for struct vpx_codec_cx_pkt */
 
+/*!\brief Encoder return output buffer callback
+ *
+ * This callback function, when registered, returns with packets when each
+ * spatial layer is encoded.
+ */
+// putting the definitions here for now. (agrange: find if there
+// is a better place for this)
+typedef void (*vpx_codec_enc_output_cx_pkt_cb_fn_t)(vpx_codec_cx_pkt_t *pkt,
+                                                    void *user_data);
 
-  /*!\brief Encoder return output buffer callback
-   *
-   * This callback function, when registered, returns with packets when each
-   * spatial layer is encoded.
+/*!\brief Callback function pointer / user data pair storage */
+typedef struct vpx_codec_enc_output_cx_cb_pair {
+  vpx_codec_enc_output_cx_pkt_cb_fn_t output_cx_pkt; /**< Callback function */
+  void *user_priv; /**< Pointer to private data */
+} vpx_codec_priv_output_cx_pkt_cb_pair_t;
+
+/*!\brief Rational Number
+ *
+ * This structure holds a fractional value.
+ */
+typedef struct vpx_rational {
+  int num;        /**< fraction numerator */
+  int den;        /**< fraction denominator */
+} vpx_rational_t; /**< alias for struct vpx_rational */
+
+/*!\brief Multi-pass Encoding Pass */
+enum vpx_enc_pass {
+  VPX_RC_ONE_PASS,   /**< Single pass mode */
+  VPX_RC_FIRST_PASS, /**< First pass of multi-pass mode */
+  VPX_RC_LAST_PASS   /**< Final pass of multi-pass mode */
+};
+
+/*!\brief Rate control mode */
+enum vpx_rc_mode {
+  VPX_VBR, /**< Variable Bit Rate (VBR) mode */
+  VPX_CBR, /**< Constant Bit Rate (CBR) mode */
+  VPX_CQ,  /**< Constrained Quality (CQ)  mode */
+  VPX_Q,   /**< Constant Quality (Q) mode */
+};
+
+/*!\brief Keyframe placement mode.
+ *
+ * This enumeration determines whether keyframes are placed automatically by
+ * the encoder or whether this behavior is disabled. Older releases of this
+ * SDK were implemented such that VPX_KF_FIXED meant keyframes were disabled.
+ * This name is confusing for this behavior, so the new symbols to be used
+ * are VPX_KF_AUTO and VPX_KF_DISABLED.
+ */
+enum vpx_kf_mode {
+  VPX_KF_FIXED,       /**< deprecated, implies VPX_KF_DISABLED */
+  VPX_KF_AUTO,        /**< Encoder determines optimal placement automatically */
+  VPX_KF_DISABLED = 0 /**< Encoder does not place keyframes. */
+};
+
+/*!\brief Encoded Frame Flags
+ *
+ * This type indicates a bitfield to be passed to vpx_codec_encode(), defining
+ * per-frame boolean values. By convention, bits common to all codecs will be
+ * named VPX_EFLAG_*, and bits specific to an algorithm will be named
+ * /algo/_eflag_*. The lower order 16 bits are reserved for common use.
+ */
+typedef long vpx_enc_frame_flags_t;
+#define VPX_EFLAG_FORCE_KF (1 << 0) /**< Force this frame to be a keyframe */
+
+/*!\brief Encoder configuration structure
+ *
+ * This structure contains the encoder settings that have common representations
+ * across all codecs. This doesn't imply that all codecs support all features,
+ * however.
+ */
+typedef struct vpx_codec_enc_cfg {
+  /*
+   * generic settings (g)
    */
-  // putting the definitions here for now. (agrange: find if there
-  // is a better place for this)
-  typedef void (* vpx_codec_enc_output_cx_pkt_cb_fn_t)(vpx_codec_cx_pkt_t *pkt,
-                                                       void *user_data);
 
-  /*!\brief Callback function pointer / user data pair storage */
-  typedef struct vpx_codec_enc_output_cx_cb_pair {
-    vpx_codec_enc_output_cx_pkt_cb_fn_t output_cx_pkt; /**< Callback function */
-    void                            *user_priv; /**< Pointer to private data */
-  } vpx_codec_priv_output_cx_pkt_cb_pair_t;
-
-  /*!\brief Rational Number
+  /*!\brief Algorithm specific "usage" value
    *
-   * This structure holds a fractional value.
+   * Algorithms may define multiple values for usage, which may convey the
+   * intent of how the application intends to use the stream. If this value
+   * is non-zero, consult the documentation for the codec to determine its
+   * meaning.
    */
-  typedef struct vpx_rational {
-    int num; /**< fraction numerator */
-    int den; /**< fraction denominator */
-  } vpx_rational_t; /**< alias for struct vpx_rational */
+  unsigned int g_usage;
 
-
-  /*!\brief Multi-pass Encoding Pass */
-  enum vpx_enc_pass {
-    VPX_RC_ONE_PASS,   /**< Single pass mode */
-    VPX_RC_FIRST_PASS, /**< First pass of multi-pass mode */
-    VPX_RC_LAST_PASS   /**< Final pass of multi-pass mode */
-  };
-
-
-  /*!\brief Rate control mode */
-  enum vpx_rc_mode {
-    VPX_VBR,  /**< Variable Bit Rate (VBR) mode */
-    VPX_CBR,  /**< Constant Bit Rate (CBR) mode */
-    VPX_CQ,   /**< Constrained Quality (CQ)  mode */
-    VPX_Q,    /**< Constant Quality (Q) mode */
-  };
-
-
-  /*!\brief Keyframe placement mode.
+  /*!\brief Maximum number of threads to use
    *
-   * This enumeration determines whether keyframes are placed automatically by
-   * the encoder or whether this behavior is disabled. Older releases of this
-   * SDK were implemented such that VPX_KF_FIXED meant keyframes were disabled.
-   * This name is confusing for this behavior, so the new symbols to be used
-   * are VPX_KF_AUTO and VPX_KF_DISABLED.
+   * For multi-threaded implementations, use no more than this number of
+   * threads. The codec may use fewer threads than allowed. The value
+   * 0 is equivalent to the value 1.
    */
-  enum vpx_kf_mode {
-    VPX_KF_FIXED, /**< deprecated, implies VPX_KF_DISABLED */
-    VPX_KF_AUTO,  /**< Encoder determines optimal placement automatically */
-    VPX_KF_DISABLED = 0 /**< Encoder does not place keyframes. */
-  };
+  unsigned int g_threads;
 
-
-  /*!\brief Encoded Frame Flags
+  /*!\brief Bitstream profile to use
    *
-   * This type indicates a bitfield to be passed to vpx_codec_encode(), defining
-   * per-frame boolean values. By convention, bits common to all codecs will be
-   * named VPX_EFLAG_*, and bits specific to an algorithm will be named
-   * /algo/_eflag_*. The lower order 16 bits are reserved for common use.
+   * Some codecs support a notion of multiple bitstream profiles. Typically
+   * this maps to a set of features that are turned on or off. Often the
+   * profile to use is determined by the features of the intended decoder.
+   * Consult the documentation for the codec to determine the valid values
+   * for this parameter, or set to zero for a sane default.
    */
-  typedef long vpx_enc_frame_flags_t;
-#define VPX_EFLAG_FORCE_KF (1<<0)  /**< Force this frame to be a keyframe */
+  unsigned int g_profile; /**< profile of bitstream to use */
 
-
-  /*!\brief Encoder configuration structure
+  /*!\brief Width of the frame
    *
-   * This structure contains the encoder settings that have common representations
-   * across all codecs. This doesn't imply that all codecs support all features,
-   * however.
+   * This value identifies the presentation resolution of the frame,
+   * in pixels. Note that the frames passed as input to the encoder must
+   * have this resolution. Frames will be presented by the decoder in this
+   * resolution, independent of any spatial resampling the encoder may do.
    */
-  typedef struct vpx_codec_enc_cfg {
-    /*
-     * generic settings (g)
-     */
+  unsigned int g_w;
 
-    /*!\brief Algorithm specific "usage" value
-     *
-     * Algorithms may define multiple values for usage, which may convey the
-     * intent of how the application intends to use the stream. If this value
-     * is non-zero, consult the documentation for the codec to determine its
-     * meaning.
-     */
-    unsigned int           g_usage;
+  /*!\brief Height of the frame
+   *
+   * This value identifies the presentation resolution of the frame,
+   * in pixels. Note that the frames passed as input to the encoder must
+   * have this resolution. Frames will be presented by the decoder in this
+   * resolution, independent of any spatial resampling the encoder may do.
+   */
+  unsigned int g_h;
 
+  /*!\brief Bit-depth of the codec
+   *
+   * This value identifies the bit_depth of the codec,
+   * Only certain bit-depths are supported as identified in the
+   * vpx_bit_depth_t enum.
+   */
+  vpx_bit_depth_t g_bit_depth;
 
-    /*!\brief Maximum number of threads to use
-     *
-     * For multi-threaded implementations, use no more than this number of
-     * threads. The codec may use fewer threads than allowed. The value
-     * 0 is equivalent to the value 1.
-     */
-    unsigned int           g_threads;
+  /*!\brief Bit-depth of the input frames
+   *
+   * This value identifies the bit_depth of the input frames in bits.
+   * Note that the frames passed as input to the encoder must have
+   * this bit-depth.
+   */
+  unsigned int g_input_bit_depth;
 
+  /*!\brief Stream timebase units
+   *
+   * Indicates the smallest interval of time, in seconds, used by the stream.
+   * For fixed frame rate material, or variable frame rate material where
+   * frames are timed at a multiple of a given clock (ex: video capture),
+   * the \ref RECOMMENDED method is to set the timebase to the reciprocal
+   * of the frame rate (ex: 1001/30000 for 29.970 Hz NTSC). This allows the
+   * pts to correspond to the frame number, which can be handy. For
+   * re-encoding video from containers with absolute time timestamps, the
+   * \ref RECOMMENDED method is to set the timebase to that of the parent
+   * container or multimedia framework (ex: 1/1000 for ms, as in FLV).
+   */
+  struct vpx_rational g_timebase;
 
-    /*!\brief Bitstream profile to use
-     *
-     * Some codecs support a notion of multiple bitstream profiles. Typically
-     * this maps to a set of features that are turned on or off. Often the
-     * profile to use is determined by the features of the intended decoder.
-     * Consult the documentation for the codec to determine the valid values
-     * for this parameter, or set to zero for a sane default.
-     */
-    unsigned int           g_profile;  /**< profile of bitstream to use */
+  /*!\brief Enable error resilient modes.
+   *
+   * The error resilient bitfield indicates to the encoder which features
+   * it should enable to take measures for streaming over lossy or noisy
+   * links.
+   */
+  vpx_codec_er_flags_t g_error_resilient;
 
+  /*!\brief Multi-pass Encoding Mode
+   *
+   * This value should be set to the current phase for multi-pass encoding.
+   * For single pass, set to #VPX_RC_ONE_PASS.
+   */
+  enum vpx_enc_pass g_pass;
 
+  /*!\brief Allow lagged encoding
+   *
+   * If set, this value allows the encoder to consume a number of input
+   * frames before producing output frames. This allows the encoder to
+   * base decisions for the current frame on future frames. This does
+   * increase the latency of the encoding pipeline, so it is not appropriate
+   * in all situations (ex: realtime encoding).
+   *
+   * Note that this is a maximum value -- the encoder may produce frames
+   * sooner than the given limit. Set this value to 0 to disable this
+   * feature.
+   */
+  unsigned int g_lag_in_frames;
 
-    /*!\brief Width of the frame
-     *
-     * This value identifies the presentation resolution of the frame,
-     * in pixels. Note that the frames passed as input to the encoder must
-     * have this resolution. Frames will be presented by the decoder in this
-     * resolution, independent of any spatial resampling the encoder may do.
-     */
-    unsigned int           g_w;
+  /*
+   * rate control settings (rc)
+   */
 
+  /*!\brief Temporal resampling configuration, if supported by the codec.
+   *
+   * Temporal resampling allows the codec to "drop" frames as a strategy to
+   * meet its target data rate. This can cause temporal discontinuities in
+   * the encoded video, which may appear as stuttering during playback. This
+   * trade-off is often acceptable, but for many applications is not. It can
+   * be disabled in these cases.
+   *
+   * Note that not all codecs support this feature. All vpx VPx codecs do.
+   * For other codecs, consult the documentation for that algorithm.
+   *
+   * This threshold is described as a percentage of the target data buffer.
+   * When the data buffer falls below this percentage of fullness, a
+   * dropped frame is indicated. Set the threshold to zero (0) to disable
+   * this feature.
+   */
+  unsigned int rc_dropframe_thresh;
 
-    /*!\brief Height of the frame
-     *
-     * This value identifies the presentation resolution of the frame,
-     * in pixels. Note that the frames passed as input to the encoder must
-     * have this resolution. Frames will be presented by the decoder in this
-     * resolution, independent of any spatial resampling the encoder may do.
-     */
-    unsigned int           g_h;
+  /*!\brief Enable/disable spatial resampling, if supported by the codec.
+   *
+   * Spatial resampling allows the codec to compress a lower resolution
+   * version of the frame, which is then upscaled by the encoder to the
+   * correct presentation resolution. This increases visual quality at
+   * low data rates, at the expense of CPU time on the encoder/decoder.
+   */
+  unsigned int rc_resize_allowed;
 
-    /*!\brief Bit-depth of the codec
-     *
-     * This value identifies the bit_depth of the codec,
-     * Only certain bit-depths are supported as identified in the
-     * vpx_bit_depth_t enum.
-     */
-    vpx_bit_depth_t        g_bit_depth;
+  /*!\brief Internal coded frame width.
+   *
+   * If spatial resampling is enabled this specifies the width of the
+   * encoded frame.
+   */
+  unsigned int rc_scaled_width;
 
-    /*!\brief Bit-depth of the input frames
-     *
-     * This value identifies the bit_depth of the input frames in bits.
-     * Note that the frames passed as input to the encoder must have
-     * this bit-depth.
-     */
-    unsigned int           g_input_bit_depth;
+  /*!\brief Internal coded frame height.
+   *
+   * If spatial resampling is enabled this specifies the height of the
+   * encoded frame.
+   */
+  unsigned int rc_scaled_height;
 
-    /*!\brief Stream timebase units
-     *
-     * Indicates the smallest interval of time, in seconds, used by the stream.
-     * For fixed frame rate material, or variable frame rate material where
-     * frames are timed at a multiple of a given clock (ex: video capture),
-     * the \ref RECOMMENDED method is to set the timebase to the reciprocal
-     * of the frame rate (ex: 1001/30000 for 29.970 Hz NTSC). This allows the
-     * pts to correspond to the frame number, which can be handy. For
-     * re-encoding video from containers with absolute time timestamps, the
-     * \ref RECOMMENDED method is to set the timebase to that of the parent
-     * container or multimedia framework (ex: 1/1000 for ms, as in FLV).
-     */
-    struct vpx_rational    g_timebase;
+  /*!\brief Spatial resampling up watermark.
+   *
+   * This threshold is described as a percentage of the target data buffer.
+   * When the data buffer rises above this percentage of fullness, the
+   * encoder will step up to a higher resolution version of the frame.
+   */
+  unsigned int rc_resize_up_thresh;
 
+  /*!\brief Spatial resampling down watermark.
+   *
+   * This threshold is described as a percentage of the target data buffer.
+   * When the data buffer falls below this percentage of fullness, the
+   * encoder will step down to a lower resolution version of the frame.
+   */
+  unsigned int rc_resize_down_thresh;
 
-    /*!\brief Enable error resilient modes.
-     *
-     * The error resilient bitfield indicates to the encoder which features
-     * it should enable to take measures for streaming over lossy or noisy
-     * links.
-     */
-    vpx_codec_er_flags_t   g_error_resilient;
+  /*!\brief Rate control algorithm to use.
+   *
+   * Indicates whether the end usage of this stream is to be streamed over
+   * a bandwidth constrained link, indicating that Constant Bit Rate (CBR)
+   * mode should be used, or whether it will be played back on a high
+   * bandwidth link, as from a local disk, where higher variations in
+   * bitrate are acceptable.
+   */
+  enum vpx_rc_mode rc_end_usage;
 
+  /*!\brief Two-pass stats buffer.
+   *
+   * A buffer containing all of the stats packets produced in the first
+   * pass, concatenated.
+   */
+  vpx_fixed_buf_t rc_twopass_stats_in;
 
-    /*!\brief Multi-pass Encoding Mode
-     *
-     * This value should be set to the current phase for multi-pass encoding.
-     * For single pass, set to #VPX_RC_ONE_PASS.
-     */
-    enum vpx_enc_pass      g_pass;
+  /*!\brief first pass mb stats buffer.
+   *
+   * A buffer containing all of the first pass mb stats packets produced
+   * in the first pass, concatenated.
+   */
+  vpx_fixed_buf_t rc_firstpass_mb_stats_in;
 
+  /*!\brief Target data rate
+   *
+   * Target bandwidth to use for this stream, in kilobits per second.
+   */
+  unsigned int rc_target_bitrate;
 
-    /*!\brief Allow lagged encoding
-     *
-     * If set, this value allows the encoder to consume a number of input
-     * frames before producing output frames. This allows the encoder to
-     * base decisions for the current frame on future frames. This does
-     * increase the latency of the encoding pipeline, so it is not appropriate
-     * in all situations (ex: realtime encoding).
-     *
-     * Note that this is a maximum value -- the encoder may produce frames
-     * sooner than the given limit. Set this value to 0 to disable this
-     * feature.
-     */
-    unsigned int           g_lag_in_frames;
+  /*
+   * quantizer settings
+   */
 
+  /*!\brief Minimum (Best Quality) Quantizer
+   *
+   * The quantizer is the most direct control over the quality of the
+   * encoded image. The range of valid values for the quantizer is codec
+   * specific. Consult the documentation for the codec to determine the
+   * values to use. To determine the range programmatically, call
+   * vpx_codec_enc_config_default() with a usage value of 0.
+   */
+  unsigned int rc_min_quantizer;
 
-    /*
-     * rate control settings (rc)
-     */
+  /*!\brief Maximum (Worst Quality) Quantizer
+   *
+   * The quantizer is the most direct control over the quality of the
+   * encoded image. The range of valid values for the quantizer is codec
+   * specific. Consult the documentation for the codec to determine the
+   * values to use. To determine the range programmatically, call
+   * vpx_codec_enc_config_default() with a usage value of 0.
+   */
+  unsigned int rc_max_quantizer;
 
-    /*!\brief Temporal resampling configuration, if supported by the codec.
-     *
-     * Temporal resampling allows the codec to "drop" frames as a strategy to
-     * meet its target data rate. This can cause temporal discontinuities in
-     * the encoded video, which may appear as stuttering during playback. This
-     * trade-off is often acceptable, but for many applications is not. It can
-     * be disabled in these cases.
-     *
-     * Note that not all codecs support this feature. All vpx VPx codecs do.
-     * For other codecs, consult the documentation for that algorithm.
-     *
-     * This threshold is described as a percentage of the target data buffer.
-     * When the data buffer falls below this percentage of fullness, a
-     * dropped frame is indicated. Set the threshold to zero (0) to disable
-     * this feature.
-     */
-    unsigned int           rc_dropframe_thresh;
+  /*
+   * bitrate tolerance
+   */
 
-
-    /*!\brief Enable/disable spatial resampling, if supported by the codec.
-     *
-     * Spatial resampling allows the codec to compress a lower resolution
-     * version of the frame, which is then upscaled by the encoder to the
-     * correct presentation resolution. This increases visual quality at
-     * low data rates, at the expense of CPU time on the encoder/decoder.
-     */
-    unsigned int           rc_resize_allowed;
-
-    /*!\brief Internal coded frame width.
-     *
-     * If spatial resampling is enabled this specifies the width of the
-     * encoded frame.
-     */
-    unsigned int           rc_scaled_width;
-
-    /*!\brief Internal coded frame height.
-     *
-     * If spatial resampling is enabled this specifies the height of the
-     * encoded frame.
-     */
-    unsigned int           rc_scaled_height;
-
-    /*!\brief Spatial resampling up watermark.
-     *
-     * This threshold is described as a percentage of the target data buffer.
-     * When the data buffer rises above this percentage of fullness, the
-     * encoder will step up to a higher resolution version of the frame.
-     */
-    unsigned int           rc_resize_up_thresh;
-
-
-    /*!\brief Spatial resampling down watermark.
-     *
-     * This threshold is described as a percentage of the target data buffer.
-     * When the data buffer falls below this percentage of fullness, the
-     * encoder will step down to a lower resolution version of the frame.
-     */
-    unsigned int           rc_resize_down_thresh;
-
-
-    /*!\brief Rate control algorithm to use.
-     *
-     * Indicates whether the end usage of this stream is to be streamed over
-     * a bandwidth constrained link, indicating that Constant Bit Rate (CBR)
-     * mode should be used, or whether it will be played back on a high
-     * bandwidth link, as from a local disk, where higher variations in
-     * bitrate are acceptable.
-     */
-    enum vpx_rc_mode       rc_end_usage;
-
-
-    /*!\brief Two-pass stats buffer.
-     *
-     * A buffer containing all of the stats packets produced in the first
-     * pass, concatenated.
-     */
-    vpx_fixed_buf_t   rc_twopass_stats_in;
-
-    /*!\brief first pass mb stats buffer.
-     *
-     * A buffer containing all of the first pass mb stats packets produced
-     * in the first pass, concatenated.
-     */
-    vpx_fixed_buf_t   rc_firstpass_mb_stats_in;
-
-    /*!\brief Target data rate
-     *
-     * Target bandwidth to use for this stream, in kilobits per second.
-     */
-    unsigned int           rc_target_bitrate;
-
-
-    /*
-     * quantizer settings
-     */
-
-
-    /*!\brief Minimum (Best Quality) Quantizer
-     *
-     * The quantizer is the most direct control over the quality of the
-     * encoded image. The range of valid values for the quantizer is codec
-     * specific. Consult the documentation for the codec to determine the
-     * values to use. To determine the range programmatically, call
-     * vpx_codec_enc_config_default() with a usage value of 0.
-     */
-    unsigned int           rc_min_quantizer;
-
-
-    /*!\brief Maximum (Worst Quality) Quantizer
-     *
-     * The quantizer is the most direct control over the quality of the
-     * encoded image. The range of valid values for the quantizer is codec
-     * specific. Consult the documentation for the codec to determine the
-     * values to use. To determine the range programmatically, call
-     * vpx_codec_enc_config_default() with a usage value of 0.
-     */
-    unsigned int           rc_max_quantizer;
-
-
-    /*
-     * bitrate tolerance
-     */
-
-
-    /*!\brief Rate control adaptation undershoot control
-     *
-     * This value, expressed as a percentage of the target bitrate,
-     * controls the maximum allowed adaptation speed of the codec.
-     * This factor controls the maximum amount of bits that can
-     * be subtracted from the target bitrate in order to compensate
-     * for prior overshoot.
-     *
-     * Valid values in the range 0-1000.
-     */
-    unsigned int           rc_undershoot_pct;
-
+  /*!\brief Rate control adaptation undershoot control
+   *
+   * This value, expressed as a percentage of the target bitrate,     * controls the maximum allowed adaptation speed of the codec.
+   * This factor controls the maximum amount of bits that can
+   * be subtracted from the target bitrate in order to compensate
+   * for prior overshoot.
+   *
+   * Valid values in the range 0-1000.
+   */
+  unsigned int           rc_undershoot_pct;
 
     /*!\brief Rate control adaptation overshoot control
      *
@@ -748,16 +712,6 @@ extern "C" {
      *
      */
     int                    temporal_layering_mode;
-    
-    /*!\brief Enables CUDA accelerated motion estimation
-    *
-    * If > 0, enables CUDA accelerated motion estimation algorithm developed by UNIMI.
-    * Currently, it only works for VP8 encoder and for single stream operations.
-    * = 1: fast kernel     (no splitmv, only integer mv)
-    * = 2: splitmv kernel  (only integer mv)
-    * = 3: accurate kernel (full featured ME kernel - slower)
-    */
-    int						cuda_me_enabled;
   } vpx_codec_enc_cfg_t; /**< alias for struct vpx_codec_enc_cfg */
 
   /*!\brief  vp9 svc extra configure parameters
@@ -1050,3 +1004,4 @@ extern "C" {
 }
 #endif
 #endif  // VPX_VPX_ENCODER_H_
+

@@ -212,7 +212,6 @@ void vp8cx_init_quantizer(VP8_COMP *cpi) {
     invert_quant(cpi->sf.improved_quant, cpi->UVquant[Q] + 0,
                  cpi->UVquant_shift[Q] + 0, quant_val);
     cpi->UVzbin[Q][0] = ((qzbin_factors[Q] * quant_val) + 64) >> 7;
-    ;
     cpi->UVround[Q][0] = (qrounding_factors[Q] * quant_val) >> 7;
     cpi->common.UVdequant[Q][0] = quant_val;
     cpi->zrun_zbin_boost_uv[Q][0] = (quant_val * zbin_boost[0]) >> 7;
@@ -298,13 +297,13 @@ void vp8cx_mb_init_quantizer(VP8_COMP *cpi, MACROBLOCK *x, int ok_to_skip) {
   if (xd->segmentation_enabled) {
     /* Abs Value */
     if (xd->mb_segement_abs_delta == SEGMENT_ABSDATA) {
-      QIndex = xd->segment_feature_data[MB_LVL_ALT_Q][xd->mode_info_context
-                                                          ->mbmi.segment_id];
+      QIndex = xd->segment_feature_data[MB_LVL_ALT_Q]
+                                       [xd->mode_info_context->mbmi.segment_id];
       /* Delta Value */
     } else {
       QIndex = cpi->common.base_qindex +
-               xd->segment_feature_data[MB_LVL_ALT_Q][xd->mode_info_context
-                                                          ->mbmi.segment_id];
+               xd->segment_feature_data[MB_LVL_ALT_Q]
+                                       [xd->mode_info_context->mbmi.segment_id];
       /* Clamp to valid range */
       QIndex = (QIndex >= 0) ? ((QIndex <= MAXQ) ? QIndex : MAXQ) : 0;
     }

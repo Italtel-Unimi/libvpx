@@ -340,8 +340,7 @@ int main(int argc, char **argv) {
   unsigned int num_temporal_layers[NUM_ENCODERS] = { 3, 3, 3 };
 
   if (argc != (7 + 3 * NUM_ENCODERS))
-    die(
-        "Usage: %s <width> <height> <frame_rate>  <infile> <outfile(s)> "
+    die("Usage: %s <width> <height> <frame_rate>  <infile> <outfile(s)> "
         "<rate_encoder(s)> <temporal_layer(s)> <key_frame_insert> <output "
         "psnr?> \n",
         argv[0]);
@@ -508,7 +507,7 @@ int main(int argc, char **argv) {
 
   /* Set NOISE_SENSITIVITY to do TEMPORAL_DENOISING */
   /* Enable denoising for the highest-resolution encoder. */
-  if (vpx_codec_control(&codec[0], VP8E_SET_NOISE_SENSITIVITY, 1))
+  if (vpx_codec_control(&codec[0], VP8E_SET_NOISE_SENSITIVITY, 4))
     die_codec(&codec[0], "Failed to set noise_sensitivity");
   for (i = 1; i < NUM_ENCODERS; i++) {
     if (vpx_codec_control(&codec[i], VP8E_SET_NOISE_SENSITIVITY, 0))

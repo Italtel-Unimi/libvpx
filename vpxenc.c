@@ -361,6 +361,8 @@ static const arg_def_t cq_level =
     ARG_DEF(NULL, "cq-level", 1, "Constant/Constrained Quality level");
 static const arg_def_t max_intra_rate_pct =
     ARG_DEF(NULL, "max-intra-rate", 1, "Max I-frame bitrate (pct)");
+static const arg_def_t gf_cbr_boost_pct = ARG_DEF(
+    NULL, "gf-cbr-boost", 1, "Boost for Golden Frame in CBR mode (pct)");
 
 #if CONFIG_VP8_ENCODER
 static const arg_def_t cpu_used_vp8 =
@@ -375,16 +377,24 @@ static const arg_def_t cuda_me_arg = ARG_DEF(
 	NULL, "cuda-me", 1, "Enable CUDA accelerated Motion Estimation: 1 = fast; 2 = w/ splitmv; 3 = accurate" );
 #endif
 
-static const arg_def_t *vp8_args[] = {
-  &cpu_used_vp8,        &auto_altref, &noise_sens,     &sharpness,
-  &static_thresh,       &token_parts, &arnr_maxframes, &arnr_strength,
-  &arnr_type,           &tune_ssim,   &cq_level,       &max_intra_rate_pct,
-  &screen_content_mode,
-#if HAVE_CUDA_ENABLED_DEVICE
-  &cuda_me_arg,
-#endif
- NULL
-};
+static const arg_def_t *vp8_args[] = { &cpu_used_vp8,
+                                       &auto_altref,
+                                       &noise_sens,
+                                       &sharpness,
+                                       &static_thresh,
+                                       &token_parts,
+                                       &arnr_maxframes,
+                                       &arnr_strength,
+                                       &arnr_type,
+                                       &tune_ssim,
+                                       &cq_level,
+                                       &max_intra_rate_pct,
+                                       &gf_cbr_boost_pct,
+                                       &screen_content_mode,
+					#if HAVE_CUDA_ENABLED_DEVICE
+					  &cuda_me_arg,
+					#endif
+                                       NULL };
 static const int vp8_arg_ctrl_map[] = { VP8E_SET_CPUUSED,
                                         VP8E_SET_ENABLEAUTOALTREF,
                                         VP8E_SET_NOISE_SENSITIVITY,
@@ -397,6 +407,7 @@ static const int vp8_arg_ctrl_map[] = { VP8E_SET_CPUUSED,
                                         VP8E_SET_TUNING,
                                         VP8E_SET_CQ_LEVEL,
                                         VP8E_SET_MAX_INTRA_BITRATE_PCT,
+                                        VP8E_SET_GF_CBR_BOOST_PCT,
                                         VP8E_SET_SCREEN_CONTENT_MODE,
                                         0 };
 #endif
@@ -417,11 +428,12 @@ static const arg_def_t aq_mode = ARG_DEF(
     NULL, "aq-mode", 1,
     "Adaptive quantization mode (0: off (default), 1: variance 2: complexity, "
     "3: cyclic refresh, 4: equator360)");
+static const arg_def_t alt_ref_aq = ARG_DEF(NULL, "alt-ref-aq", 1,
+                                            "Special adaptive quantization for "
+                                            "the alternate reference frames.");
 static const arg_def_t frame_periodic_boost =
     ARG_DEF(NULL, "frame-boost", 1,
             "Enable frame periodic boost (0: off (default), 1: on)");
-static const arg_def_t gf_cbr_boost_pct = ARG_DEF(
-    NULL, "gf-cbr-boost", 1, "Boost for Golden Frame in CBR mode (pct)");
 static const arg_def_t max_inter_rate_pct =
     ARG_DEF(NULL, "max-inter-rate", 1, "Max P-frame bitrate (pct)");
 static const arg_def_t min_gf_interval = ARG_DEF(
@@ -493,6 +505,7 @@ static const arg_def_t *vp9_args[] = { &cpu_used_vp9,
                                        &lossless,
                                        &frame_parallel_decoding,
                                        &aq_mode,
+                                       &alt_ref_aq,
                                        &frame_periodic_boost,
                                        &noise_sens,
                                        &tune_content,
@@ -522,6 +535,7 @@ static const int vp9_arg_ctrl_map[] = { VP8E_SET_CPUUSED,
                                         VP9E_SET_LOSSLESS,
                                         VP9E_SET_FRAME_PARALLEL_DECODING,
                                         VP9E_SET_AQ_MODE,
+                                        VP9E_SET_ALT_REF_AQ,
                                         VP9E_SET_FRAME_PERIODIC_BOOST,
                                         VP9E_SET_NOISE_SENSITIVITY,
                                         VP9E_SET_TUNE_CONTENT,
@@ -1452,9 +1466,8 @@ static void open_output_file(struct stream_state *stream,
 #if CONFIG_WEBM_IO
   if (stream->config.write_webm) {
     stream->webm_ctx.stream = stream->file;
-    write_webm_file_header(&stream->webm_ctx, cfg, &global->framerate,
-                           stream->config.stereo_fmt, global->codec->fourcc,
-                           pixel_aspect_ratio);
+    write_webm_file_header(&stream->webm_ctx, cfg, stream->config.stereo_fmt,
+                           global->codec->fourcc, pixel_aspect_ratio);
   }
 #else
   (void)pixel_aspect_ratio;
@@ -2006,8 +2019,7 @@ int main(int argc, const char **argv_) {
     if (global.pass && global.passes == 2)
       FOREACH_STREAM({
         if (!stream->config.stats_fn)
-          die(
-              "Stream %d: Must specify --fpf when --pass=%d"
+          die("Stream %d: Must specify --fpf when --pass=%d"
               " and --passes=2\n",
               stream->index, global.pass);
       });
