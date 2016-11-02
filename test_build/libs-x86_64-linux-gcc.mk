@@ -14,12 +14,12 @@ ASM_CONVERSION=../build/make/ads2gas.pl
 GEN_VCPROJ=
 MSVS_ARCH_DIR=
 
-CXXCUDA=/usr/local/cuda-7.5/bin/nvcc
+CXXCUDA=/usr/local/cuda-8.0/bin/nvcc
 
 CC=gcc
 CXX=g++
 AR=ar
-LD=/usr/local/cuda-7.5/bin/nvcc
+LD=/usr/local/cuda-8.0/bin/nvcc
 AS=yasm
 STRIP=strip
 NM=nm
@@ -28,7 +28,7 @@ CFLAGS  =  -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_
 CXXFLAGS  =  -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wuninitialized -Wunused
 CXXCUDAFLAGS = --std c++11 -gencode arch=compute_52,code=compute_52 -gencode arch=compute_52,code=sm_52 -m 64 -DNDEBUG -O3
 ARFLAGS = -crs$(if $(quiet),,v)
-LDFLAGS =  -link -m64
+LDFLAGS =  -link -m64 -gencode arch=compute_52,code=compute_52 -gencode arch=compute_52,code=sm_52
 ASFLAGS =  -f elf64
 extralibs =  -lpthread
 AS_SFX    = .asm

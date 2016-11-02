@@ -2250,11 +2250,6 @@ void vp8_rd_pick_inter_mode(VP8_COMP *cpi, MACROBLOCK *x, int recon_yoffset,
 
       case ZEROMV:
 
-            vp8_set_mbmode_and_mvs(x, this_mode, &mode_mv[this_mode]);
-            this_rd = evaluate_inter_mode_rd(mdcounts, &rd,
-                                             &disable_skip, cpi, x);
-            break;
-
         /* Trap vectors that reach beyond the UMV borders
          * Note that ALL New MV, Nearest MV Near MV and Zero MV code
          * drops through to this point because of the lack of break

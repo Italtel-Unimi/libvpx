@@ -371,7 +371,6 @@ static const arg_def_t token_parts =
     ARG_DEF(NULL, "token-parts", 1, "Number of token partitions to use, log2");
 static const arg_def_t screen_content_mode =
     ARG_DEF(NULL, "screen-content-mode", 1, "Screen content mode");
-
 #if HAVE_CUDA_ENABLED_DEVICE
 static const arg_def_t cuda_me_arg = ARG_DEF(
 	NULL, "cuda-me", 1, "Enable CUDA accelerated Motion Estimation: 1 = fast; 2 = w/ splitmv; 3 = accurate" );
@@ -391,9 +390,9 @@ static const arg_def_t *vp8_args[] = { &cpu_used_vp8,
                                        &max_intra_rate_pct,
                                        &gf_cbr_boost_pct,
                                        &screen_content_mode,
-					#if HAVE_CUDA_ENABLED_DEVICE
-					  &cuda_me_arg,
-					#endif
+#if HAVE_CUDA_ENABLED_DEVICE
+  &cuda_me_arg,
+#endif
                                        NULL };
 static const int vp8_arg_ctrl_map[] = { VP8E_SET_CPUUSED,
                                         VP8E_SET_ENABLEAUTOALTREF,

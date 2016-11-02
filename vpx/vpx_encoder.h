@@ -512,496 +512,479 @@ typedef struct vpx_codec_enc_cfg {
 
   /*!\brief Rate control adaptation undershoot control
    *
-   * This value, expressed as a percentage of the target bitrate,     * controls the maximum allowed adaptation speed of the codec.
+   * This value, expressed as a percentage of the target bitrate,
+   * controls the maximum allowed adaptation speed of the codec.
    * This factor controls the maximum amount of bits that can
    * be subtracted from the target bitrate in order to compensate
    * for prior overshoot.
    *
    * Valid values in the range 0-1000.
    */
-  unsigned int           rc_undershoot_pct;
+  unsigned int rc_undershoot_pct;
 
-    /*!\brief Rate control adaptation overshoot control
-     *
-     * This value, expressed as a percentage of the target bitrate,
-     * controls the maximum allowed adaptation speed of the codec.
-     * This factor controls the maximum amount of bits that can
-     * be added to the target bitrate in order to compensate for
-     * prior undershoot.
-     *
-     * Valid values in the range 0-1000.
-     */
-    unsigned int           rc_overshoot_pct;
+  /*!\brief Rate control adaptation overshoot control
+   *
+   * This value, expressed as a percentage of the target bitrate,
+   * controls the maximum allowed adaptation speed of the codec.
+   * This factor controls the maximum amount of bits that can
+   * be added to the target bitrate in order to compensate for
+   * prior undershoot.
+   *
+   * Valid values in the range 0-1000.
+   */
+  unsigned int rc_overshoot_pct;
 
+  /*
+   * decoder buffer model parameters
+   */
 
-    /*
-     * decoder buffer model parameters
-     */
+  /*!\brief Decoder Buffer Size
+   *
+   * This value indicates the amount of data that may be buffered by the
+   * decoding application. Note that this value is expressed in units of
+   * time (milliseconds). For example, a value of 5000 indicates that the
+   * client will buffer (at least) 5000ms worth of encoded data. Use the
+   * target bitrate (#rc_target_bitrate) to convert to bits/bytes, if
+   * necessary.
+   */
+  unsigned int rc_buf_sz;
 
+  /*!\brief Decoder Buffer Initial Size
+   *
+   * This value indicates the amount of data that will be buffered by the
+   * decoding application prior to beginning playback. This value is
+   * expressed in units of time (milliseconds). Use the target bitrate
+   * (#rc_target_bitrate) to convert to bits/bytes, if necessary.
+   */
+  unsigned int rc_buf_initial_sz;
 
-    /*!\brief Decoder Buffer Size
-     *
-     * This value indicates the amount of data that may be buffered by the
-     * decoding application. Note that this value is expressed in units of
-     * time (milliseconds). For example, a value of 5000 indicates that the
-     * client will buffer (at least) 5000ms worth of encoded data. Use the
-     * target bitrate (#rc_target_bitrate) to convert to bits/bytes, if
-     * necessary.
-     */
-    unsigned int           rc_buf_sz;
+  /*!\brief Decoder Buffer Optimal Size
+   *
+   * This value indicates the amount of data that the encoder should try
+   * to maintain in the decoder's buffer. This value is expressed in units
+   * of time (milliseconds). Use the target bitrate (#rc_target_bitrate)
+   * to convert to bits/bytes, if necessary.
+   */
+  unsigned int rc_buf_optimal_sz;
 
+  /*
+   * 2 pass rate control parameters
+   */
 
-    /*!\brief Decoder Buffer Initial Size
-     *
-     * This value indicates the amount of data that will be buffered by the
-     * decoding application prior to beginning playback. This value is
-     * expressed in units of time (milliseconds). Use the target bitrate
-     * (#rc_target_bitrate) to convert to bits/bytes, if necessary.
-     */
-    unsigned int           rc_buf_initial_sz;
+  /*!\brief Two-pass mode CBR/VBR bias
+   *
+   * Bias, expressed on a scale of 0 to 100, for determining target size
+   * for the current frame. The value 0 indicates the optimal CBR mode
+   * value should be used. The value 100 indicates the optimal VBR mode
+   * value should be used. Values in between indicate which way the
+   * encoder should "lean."
+   */
+  unsigned int rc_2pass_vbr_bias_pct;
 
+  /*!\brief Two-pass mode per-GOP minimum bitrate
+   *
+   * This value, expressed as a percentage of the target bitrate, indicates
+   * the minimum bitrate to be used for a single GOP (aka "section")
+   */
+  unsigned int rc_2pass_vbr_minsection_pct;
 
-    /*!\brief Decoder Buffer Optimal Size
-     *
-     * This value indicates the amount of data that the encoder should try
-     * to maintain in the decoder's buffer. This value is expressed in units
-     * of time (milliseconds). Use the target bitrate (#rc_target_bitrate)
-     * to convert to bits/bytes, if necessary.
-     */
-    unsigned int           rc_buf_optimal_sz;
+  /*!\brief Two-pass mode per-GOP maximum bitrate
+   *
+   * This value, expressed as a percentage of the target bitrate, indicates
+   * the maximum bitrate to be used for a single GOP (aka "section")
+   */
+  unsigned int rc_2pass_vbr_maxsection_pct;
 
+  /*
+   * keyframing settings (kf)
+   */
 
-    /*
-     * 2 pass rate control parameters
-     */
+  /*!\brief Keyframe placement mode
+   *
+   * This value indicates whether the encoder should place keyframes at a
+   * fixed interval, or determine the optimal placement automatically
+   * (as governed by the #kf_min_dist and #kf_max_dist parameters)
+   */
+  enum vpx_kf_mode kf_mode;
 
+  /*!\brief Keyframe minimum interval
+   *
+   * This value, expressed as a number of frames, prevents the encoder from
+   * placing a keyframe nearer than kf_min_dist to the previous keyframe. At
+   * least kf_min_dist frames non-keyframes will be coded before the next
+   * keyframe. Set kf_min_dist equal to kf_max_dist for a fixed interval.
+   */
+  unsigned int kf_min_dist;
 
-    /*!\brief Two-pass mode CBR/VBR bias
-     *
-     * Bias, expressed on a scale of 0 to 100, for determining target size
-     * for the current frame. The value 0 indicates the optimal CBR mode
-     * value should be used. The value 100 indicates the optimal VBR mode
-     * value should be used. Values in between indicate which way the
-     * encoder should "lean."
-     */
-    unsigned int           rc_2pass_vbr_bias_pct;       /**< RC mode bias between CBR and VBR(0-100: 0->CBR, 100->VBR)   */
+  /*!\brief Keyframe maximum interval
+   *
+   * This value, expressed as a number of frames, forces the encoder to code
+   * a keyframe if one has not been coded in the last kf_max_dist frames.
+   * A value of 0 implies all frames will be keyframes. Set kf_min_dist
+   * equal to kf_max_dist for a fixed interval.
+   */
+  unsigned int kf_max_dist;
 
+  /*
+   * Spatial scalability settings (ss)
+   */
 
-    /*!\brief Two-pass mode per-GOP minimum bitrate
-     *
-     * This value, expressed as a percentage of the target bitrate, indicates
-     * the minimum bitrate to be used for a single GOP (aka "section")
-     */
-    unsigned int           rc_2pass_vbr_minsection_pct;
+  /*!\brief Number of spatial coding layers.
+   *
+   * This value specifies the number of spatial coding layers to be used.
+   */
+  unsigned int ss_number_layers;
 
+  /*!\brief Enable auto alt reference flags for each spatial layer.
+   *
+   * These values specify if auto alt reference frame is enabled for each
+   * spatial layer.
+   */
+  int ss_enable_auto_alt_ref[VPX_SS_MAX_LAYERS];
 
-    /*!\brief Two-pass mode per-GOP maximum bitrate
-     *
-     * This value, expressed as a percentage of the target bitrate, indicates
-     * the maximum bitrate to be used for a single GOP (aka "section")
-     */
-    unsigned int           rc_2pass_vbr_maxsection_pct;
+  /*!\brief Target bitrate for each spatial layer.
+   *
+   * These values specify the target coding bitrate to be used for each
+   * spatial layer.
+   */
+  unsigned int ss_target_bitrate[VPX_SS_MAX_LAYERS];
 
+  /*!\brief Number of temporal coding layers.
+   *
+   * This value specifies the number of temporal layers to be used.
+   */
+  unsigned int ts_number_layers;
 
-    /*
-     * keyframing settings (kf)
-     */
+  /*!\brief Target bitrate for each temporal layer.
+   *
+   * These values specify the target coding bitrate to be used for each
+   * temporal layer.
+   */
+  unsigned int ts_target_bitrate[VPX_TS_MAX_LAYERS];
 
-    /*!\brief Keyframe placement mode
-     *
-     * This value indicates whether the encoder should place keyframes at a
-     * fixed interval, or determine the optimal placement automatically
-     * (as governed by the #kf_min_dist and #kf_max_dist parameters)
-     */
-    enum vpx_kf_mode       kf_mode;
+  /*!\brief Frame rate decimation factor for each temporal layer.
+   *
+   * These values specify the frame rate decimation factors to apply
+   * to each temporal layer.
+   */
+  unsigned int ts_rate_decimator[VPX_TS_MAX_LAYERS];
 
+  /*!\brief Length of the sequence defining frame temporal layer membership.
+   *
+   * This value specifies the length of the sequence that defines the
+   * membership of frames to temporal layers. For example, if the
+   * ts_periodicity = 8, then the frames are assigned to coding layers with a
+   * repeated sequence of length 8.
+  */
+  unsigned int ts_periodicity;
 
-    /*!\brief Keyframe minimum interval
-     *
-     * This value, expressed as a number of frames, prevents the encoder from
-     * placing a keyframe nearer than kf_min_dist to the previous keyframe. At
-     * least kf_min_dist frames non-keyframes will be coded before the next
-     * keyframe. Set kf_min_dist equal to kf_max_dist for a fixed interval.
-     */
-    unsigned int           kf_min_dist;
+  /*!\brief Template defining the membership of frames to temporal layers.
+   *
+   * This array defines the membership of frames to temporal coding layers.
+   * For a 2-layer encoding that assigns even numbered frames to one temporal
+   * layer (0) and odd numbered frames to a second temporal layer (1) with
+   * ts_periodicity=8, then ts_layer_id = (0,1,0,1,0,1,0,1).
+  */
+  unsigned int ts_layer_id[VPX_TS_MAX_PERIODICITY];
 
+  /*!\brief Target bitrate for each spatial/temporal layer.
+   *
+   * These values specify the target coding bitrate to be used for each
+   * spatial/temporal layer.
+   *
+   */
+  unsigned int layer_target_bitrate[VPX_MAX_LAYERS];
 
-    /*!\brief Keyframe maximum interval
-     *
-     * This value, expressed as a number of frames, forces the encoder to code
-     * a keyframe if one has not been coded in the last kf_max_dist frames.
-     * A value of 0 implies all frames will be keyframes. Set kf_min_dist
-     * equal to kf_max_dist for a fixed interval.
-     */
-    unsigned int           kf_max_dist;
+  /*!\brief Temporal layering mode indicating which temporal layering scheme to
+   * use.
+   *
+   * The value (refer to VP9E_TEMPORAL_LAYERING_MODE) specifies the
+   * temporal layering mode to use.
+   *
+   */
+  int temporal_layering_mode;
 
-    /*
-     * Spatial scalability settings (ss)
-     */
-
-    /*!\brief Number of spatial coding layers.
-     *
-     * This value specifies the number of spatial coding layers to be used.
-     */
-    unsigned int           ss_number_layers;
-
-    /*!\brief Enable auto alt reference flags for each spatial layer.
-     *
-     * These values specify if auto alt reference frame is enabled for each
-     * spatial layer.
-     */
-    int                    ss_enable_auto_alt_ref[VPX_SS_MAX_LAYERS];
-
-    /*!\brief Target bitrate for each spatial layer.
-     *
-     * These values specify the target coding bitrate to be used for each
-     * spatial layer.
-     */
-    unsigned int           ss_target_bitrate[VPX_SS_MAX_LAYERS];
-
-    /*!\brief Number of temporal coding layers.
-     *
-     * This value specifies the number of temporal layers to be used.
-     */
-    unsigned int           ts_number_layers;
-
-    /*!\brief Target bitrate for each temporal layer.
-     *
-     * These values specify the target coding bitrate to be used for each
-     * temporal layer.
-     */
-    unsigned int           ts_target_bitrate[VPX_TS_MAX_LAYERS];
-
-    /*!\brief Frame rate decimation factor for each temporal layer.
-     *
-     * These values specify the frame rate decimation factors to apply
-     * to each temporal layer.
-     */
-    unsigned int           ts_rate_decimator[VPX_TS_MAX_LAYERS];
-
-    /*!\brief Length of the sequence defining frame temporal layer membership.
-     *
-     * This value specifies the length of the sequence that defines the
-     * membership of frames to temporal layers. For example, if the
-     * ts_periodicity = 8, then the frames are assigned to coding layers with a
-     * repeated sequence of length 8.
+/*!\brief Enables CUDA accelerated motion estimation
+    *
+    * If > 0, enables CUDA accelerated motion estimation algorithm developed by UNIMI.
+    * Currently, it only works for VP8 encoder and for single stream operations.
+    * = 1: fast kernel     (no splitmv, only integer mv)
+    * = 2: splitmv kernel  (only integer mv)
+    * = 3: accurate kernel (full featured ME kernel - slower)
     */
-    unsigned int           ts_periodicity;
+    int						cuda_me_enabled;
+} vpx_codec_enc_cfg_t; /**< alias for struct vpx_codec_enc_cfg */
 
-    /*!\brief Template defining the membership of frames to temporal layers.
-     *
-     * This array defines the membership of frames to temporal coding layers.
-     * For a 2-layer encoding that assigns even numbered frames to one temporal
-     * layer (0) and odd numbered frames to a second temporal layer (1) with
-     * ts_periodicity=8, then ts_layer_id = (0,1,0,1,0,1,0,1).
-    */
-    unsigned int           ts_layer_id[VPX_TS_MAX_PERIODICITY];
+/*!\brief  vp9 svc extra configure parameters
+ *
+ * This defines max/min quantizers and scale factors for each layer
+ *
+ */
+typedef struct vpx_svc_parameters {
+  int max_quantizers[VPX_MAX_LAYERS];     /**< Max Q for each layer */
+  int min_quantizers[VPX_MAX_LAYERS];     /**< Min Q for each layer */
+  int scaling_factor_num[VPX_MAX_LAYERS]; /**< Scaling factor-numerator */
+  int scaling_factor_den[VPX_MAX_LAYERS]; /**< Scaling factor-denominator */
+  int speed_per_layer[VPX_MAX_LAYERS];    /**< Speed setting for each sl */
+  int temporal_layering_mode;             /**< Temporal layering mode */
+} vpx_svc_extra_cfg_t;
 
-    /*!\brief Target bitrate for each spatial/temporal layer.
-     *
-     * These values specify the target coding bitrate to be used for each
-     * spatial/temporal layer.
-     *
-     */
-    unsigned int           layer_target_bitrate[VPX_MAX_LAYERS];
+/*!\brief Initialize an encoder instance
+ *
+ * Initializes a encoder context using the given interface. Applications
+ * should call the vpx_codec_enc_init convenience macro instead of this
+ * function directly, to ensure that the ABI version number parameter
+ * is properly initialized.
+ *
+ * If the library was configured with --disable-multithread, this call
+ * is not thread safe and should be guarded with a lock if being used
+ * in a multithreaded context.
+ *
+ * \param[in]    ctx     Pointer to this instance's context.
+ * \param[in]    iface   Pointer to the algorithm interface to use.
+ * \param[in]    cfg     Configuration to use, if known. May be NULL.
+ * \param[in]    flags   Bitfield of VPX_CODEC_USE_* flags
+ * \param[in]    ver     ABI version number. Must be set to
+ *                       VPX_ENCODER_ABI_VERSION
+ * \retval #VPX_CODEC_OK
+ *     The decoder algorithm initialized.
+ * \retval #VPX_CODEC_MEM_ERROR
+ *     Memory allocation failed.
+ */
+vpx_codec_err_t vpx_codec_enc_init_ver(vpx_codec_ctx_t *ctx,
+                                       vpx_codec_iface_t *iface,
+                                       const vpx_codec_enc_cfg_t *cfg,
+                                       vpx_codec_flags_t flags, int ver);
 
-    /*!\brief Temporal layering mode indicating which temporal layering scheme to use.
-     *
-     * The value (refer to VP9E_TEMPORAL_LAYERING_MODE) specifies the
-     * temporal layering mode to use.
-     *
-     */
-    int                    temporal_layering_mode;
-  } vpx_codec_enc_cfg_t; /**< alias for struct vpx_codec_enc_cfg */
-
-  /*!\brief  vp9 svc extra configure parameters
-   *
-   * This defines max/min quantizers and scale factors for each layer
-   *
-   */
-  typedef struct vpx_svc_parameters {
-    int max_quantizers[VPX_MAX_LAYERS]; /**< Max Q for each layer */
-    int min_quantizers[VPX_MAX_LAYERS]; /**< Min Q for each layer */
-    int scaling_factor_num[VPX_MAX_LAYERS]; /**< Scaling factor-numerator */
-    int scaling_factor_den[VPX_MAX_LAYERS]; /**< Scaling factor-denominator */
-    int temporal_layering_mode; /**< Temporal layering mode */
-  } vpx_svc_extra_cfg_t;
-
-
-  /*!\brief Initialize an encoder instance
-   *
-   * Initializes a encoder context using the given interface. Applications
-   * should call the vpx_codec_enc_init convenience macro instead of this
-   * function directly, to ensure that the ABI version number parameter
-   * is properly initialized.
-   *
-   * If the library was configured with --disable-multithread, this call
-   * is not thread safe and should be guarded with a lock if being used
-   * in a multithreaded context.
-   *
-   * \param[in]    ctx     Pointer to this instance's context.
-   * \param[in]    iface   Pointer to the algorithm interface to use.
-   * \param[in]    cfg     Configuration to use, if known. May be NULL.
-   * \param[in]    flags   Bitfield of VPX_CODEC_USE_* flags
-   * \param[in]    ver     ABI version number. Must be set to
-   *                       VPX_ENCODER_ABI_VERSION
-   * \retval #VPX_CODEC_OK
-   *     The decoder algorithm initialized.
-   * \retval #VPX_CODEC_MEM_ERROR
-   *     Memory allocation failed.
-   */
-  vpx_codec_err_t vpx_codec_enc_init_ver(vpx_codec_ctx_t      *ctx,
-                                         vpx_codec_iface_t    *iface,
-                                         const vpx_codec_enc_cfg_t *cfg,
-                                         vpx_codec_flags_t     flags,
-                                         int                   ver);
-
-
-  /*!\brief Convenience macro for vpx_codec_enc_init_ver()
-   *
-   * Ensures the ABI version parameter is properly set.
-   */
+/*!\brief Convenience macro for vpx_codec_enc_init_ver()
+ *
+ * Ensures the ABI version parameter is properly set.
+ */
 #define vpx_codec_enc_init(ctx, iface, cfg, flags) \
   vpx_codec_enc_init_ver(ctx, iface, cfg, flags, VPX_ENCODER_ABI_VERSION)
 
+/*!\brief Initialize multi-encoder instance
+ *
+ * Initializes multi-encoder context using the given interface.
+ * Applications should call the vpx_codec_enc_init_multi convenience macro
+ * instead of this function directly, to ensure that the ABI version number
+ * parameter is properly initialized.
+ *
+ * \param[in]    ctx     Pointer to this instance's context.
+ * \param[in]    iface   Pointer to the algorithm interface to use.
+ * \param[in]    cfg     Configuration to use, if known. May be NULL.
+ * \param[in]    num_enc Total number of encoders.
+ * \param[in]    flags   Bitfield of VPX_CODEC_USE_* flags
+ * \param[in]    dsf     Pointer to down-sampling factors.
+ * \param[in]    ver     ABI version number. Must be set to
+ *                       VPX_ENCODER_ABI_VERSION
+ * \retval #VPX_CODEC_OK
+ *     The decoder algorithm initialized.
+ * \retval #VPX_CODEC_MEM_ERROR
+ *     Memory allocation failed.
+ */
+vpx_codec_err_t vpx_codec_enc_init_multi_ver(
+    vpx_codec_ctx_t *ctx, vpx_codec_iface_t *iface, vpx_codec_enc_cfg_t *cfg,
+    int num_enc, vpx_codec_flags_t flags, vpx_rational_t *dsf, int ver);
 
-  /*!\brief Initialize multi-encoder instance
-   *
-   * Initializes multi-encoder context using the given interface.
-   * Applications should call the vpx_codec_enc_init_multi convenience macro
-   * instead of this function directly, to ensure that the ABI version number
-   * parameter is properly initialized.
-   *
-   * \param[in]    ctx     Pointer to this instance's context.
-   * \param[in]    iface   Pointer to the algorithm interface to use.
-   * \param[in]    cfg     Configuration to use, if known. May be NULL.
-   * \param[in]    num_enc Total number of encoders.
-   * \param[in]    flags   Bitfield of VPX_CODEC_USE_* flags
-   * \param[in]    dsf     Pointer to down-sampling factors.
-   * \param[in]    ver     ABI version number. Must be set to
-   *                       VPX_ENCODER_ABI_VERSION
-   * \retval #VPX_CODEC_OK
-   *     The decoder algorithm initialized.
-   * \retval #VPX_CODEC_MEM_ERROR
-   *     Memory allocation failed.
-   */
-  vpx_codec_err_t vpx_codec_enc_init_multi_ver(vpx_codec_ctx_t      *ctx,
-                                               vpx_codec_iface_t    *iface,
-                                               vpx_codec_enc_cfg_t  *cfg,
-                                               int                   num_enc,
-                                               vpx_codec_flags_t     flags,
-                                               vpx_rational_t       *dsf,
-                                               int                   ver);
-
-
-  /*!\brief Convenience macro for vpx_codec_enc_init_multi_ver()
-   *
-   * Ensures the ABI version parameter is properly set.
-   */
+/*!\brief Convenience macro for vpx_codec_enc_init_multi_ver()
+ *
+ * Ensures the ABI version parameter is properly set.
+ */
 #define vpx_codec_enc_init_multi(ctx, iface, cfg, num_enc, flags, dsf) \
-  vpx_codec_enc_init_multi_ver(ctx, iface, cfg, num_enc, flags, dsf, \
+  vpx_codec_enc_init_multi_ver(ctx, iface, cfg, num_enc, flags, dsf,   \
                                VPX_ENCODER_ABI_VERSION)
 
+/*!\brief Get a default configuration
+ *
+ * Initializes a encoder configuration structure with default values. Supports
+ * the notion of "usages" so that an algorithm may offer different default
+ * settings depending on the user's intended goal. This function \ref SHOULD
+ * be called by all applications to initialize the configuration structure
+ * before specializing the configuration with application specific values.
+ *
+ * \param[in]    iface     Pointer to the algorithm interface to use.
+ * \param[out]   cfg       Configuration buffer to populate.
+ * \param[in]    reserved  Must set to 0 for VP8 and VP9.
+ *
+ * \retval #VPX_CODEC_OK
+ *     The configuration was populated.
+ * \retval #VPX_CODEC_INCAPABLE
+ *     Interface is not an encoder interface.
+ * \retval #VPX_CODEC_INVALID_PARAM
+ *     A parameter was NULL, or the usage value was not recognized.
+ */
+vpx_codec_err_t vpx_codec_enc_config_default(vpx_codec_iface_t *iface,
+                                             vpx_codec_enc_cfg_t *cfg,
+                                             unsigned int reserved);
 
-  /*!\brief Get a default configuration
-   *
-   * Initializes a encoder configuration structure with default values. Supports
-   * the notion of "usages" so that an algorithm may offer different default
-   * settings depending on the user's intended goal. This function \ref SHOULD
-   * be called by all applications to initialize the configuration structure
-   * before specializing the configuration with application specific values.
-   *
-   * \param[in]    iface     Pointer to the algorithm interface to use.
-   * \param[out]   cfg       Configuration buffer to populate.
-   * \param[in]    reserved  Must set to 0 for VP8 and VP9.
-   *
-   * \retval #VPX_CODEC_OK
-   *     The configuration was populated.
-   * \retval #VPX_CODEC_INCAPABLE
-   *     Interface is not an encoder interface.
-   * \retval #VPX_CODEC_INVALID_PARAM
-   *     A parameter was NULL, or the usage value was not recognized.
-   */
-  vpx_codec_err_t  vpx_codec_enc_config_default(vpx_codec_iface_t    *iface,
-                                                vpx_codec_enc_cfg_t  *cfg,
-                                                unsigned int          reserved);
+/*!\brief Set or change configuration
+ *
+ * Reconfigures an encoder instance according to the given configuration.
+ *
+ * \param[in]    ctx     Pointer to this instance's context
+ * \param[in]    cfg     Configuration buffer to use
+ *
+ * \retval #VPX_CODEC_OK
+ *     The configuration was populated.
+ * \retval #VPX_CODEC_INCAPABLE
+ *     Interface is not an encoder interface.
+ * \retval #VPX_CODEC_INVALID_PARAM
+ *     A parameter was NULL, or the usage value was not recognized.
+ */
+vpx_codec_err_t vpx_codec_enc_config_set(vpx_codec_ctx_t *ctx,
+                                         const vpx_codec_enc_cfg_t *cfg);
 
+/*!\brief Get global stream headers
+ *
+ * Retrieves a stream level global header packet, if supported by the codec.
+ *
+ * \param[in]    ctx     Pointer to this instance's context
+ *
+ * \retval NULL
+ *     Encoder does not support global header
+ * \retval Non-NULL
+ *     Pointer to buffer containing global header packet
+ */
+vpx_fixed_buf_t *vpx_codec_get_global_headers(vpx_codec_ctx_t *ctx);
 
-  /*!\brief Set or change configuration
-   *
-   * Reconfigures an encoder instance according to the given configuration.
-   *
-   * \param[in]    ctx     Pointer to this instance's context
-   * \param[in]    cfg     Configuration buffer to use
-   *
-   * \retval #VPX_CODEC_OK
-   *     The configuration was populated.
-   * \retval #VPX_CODEC_INCAPABLE
-   *     Interface is not an encoder interface.
-   * \retval #VPX_CODEC_INVALID_PARAM
-   *     A parameter was NULL, or the usage value was not recognized.
-   */
-  vpx_codec_err_t  vpx_codec_enc_config_set(vpx_codec_ctx_t            *ctx,
-                                            const vpx_codec_enc_cfg_t  *cfg);
+/*!\brief deadline parameter analogous to VPx REALTIME mode. */
+#define VPX_DL_REALTIME (1)
+/*!\brief deadline parameter analogous to  VPx GOOD QUALITY mode. */
+#define VPX_DL_GOOD_QUALITY (1000000)
+/*!\brief deadline parameter analogous to VPx BEST QUALITY mode. */
+#define VPX_DL_BEST_QUALITY (0)
+/*!\brief Encode a frame
+ *
+ * Encodes a video frame at the given "presentation time." The presentation
+ * time stamp (PTS) \ref MUST be strictly increasing.
+ *
+ * The encoder supports the notion of a soft real-time deadline. Given a
+ * non-zero value to the deadline parameter, the encoder will make a "best
+ * effort" guarantee to  return before the given time slice expires. It is
+ * implicit that limiting the available time to encode will degrade the
+ * output quality. The encoder can be given an unlimited time to produce the
+ * best possible frame by specifying a deadline of '0'. This deadline
+ * supercedes the VPx notion of "best quality, good quality, realtime".
+ * Applications that wish to map these former settings to the new deadline
+ * based system can use the symbols #VPX_DL_REALTIME, #VPX_DL_GOOD_QUALITY,
+ * and #VPX_DL_BEST_QUALITY.
+ *
+ * When the last frame has been passed to the encoder, this function should
+ * continue to be called, with the img parameter set to NULL. This will
+ * signal the end-of-stream condition to the encoder and allow it to encode
+ * any held buffers. Encoding is complete when vpx_codec_encode() is called
+ * and vpx_codec_get_cx_data() returns no data.
+ *
+ * \param[in]    ctx       Pointer to this instance's context
+ * \param[in]    img       Image data to encode, NULL to flush.
+ * \param[in]    pts       Presentation time stamp, in timebase units.
+ * \param[in]    duration  Duration to show frame, in timebase units.
+ * \param[in]    flags     Flags to use for encoding this frame.
+ * \param[in]    deadline  Time to spend encoding, in microseconds. (0=infinite)
+ *
+ * \retval #VPX_CODEC_OK
+ *     The configuration was populated.
+ * \retval #VPX_CODEC_INCAPABLE
+ *     Interface is not an encoder interface.
+ * \retval #VPX_CODEC_INVALID_PARAM
+ *     A parameter was NULL, the image format is unsupported, etc.
+ */
+vpx_codec_err_t vpx_codec_encode(vpx_codec_ctx_t *ctx, const vpx_image_t *img,
+                                 vpx_codec_pts_t pts, unsigned long duration,
+                                 vpx_enc_frame_flags_t flags,
+                                 unsigned long deadline);
 
+/*!\brief Set compressed data output buffer
+ *
+ * Sets the buffer that the codec should output the compressed data
+ * into. This call effectively sets the buffer pointer returned in the
+ * next VPX_CODEC_CX_FRAME_PKT packet. Subsequent packets will be
+ * appended into this buffer. The buffer is preserved across frames,
+ * so applications must periodically call this function after flushing
+ * the accumulated compressed data to disk or to the network to reset
+ * the pointer to the buffer's head.
+ *
+ * `pad_before` bytes will be skipped before writing the compressed
+ * data, and `pad_after` bytes will be appended to the packet. The size
+ * of the packet will be the sum of the size of the actual compressed
+ * data, pad_before, and pad_after. The padding bytes will be preserved
+ * (not overwritten).
+ *
+ * Note that calling this function does not guarantee that the returned
+ * compressed data will be placed into the specified buffer. In the
+ * event that the encoded data will not fit into the buffer provided,
+ * the returned packet \ref MAY point to an internal buffer, as it would
+ * if this call were never used. In this event, the output packet will
+ * NOT have any padding, and the application must free space and copy it
+ * to the proper place. This is of particular note in configurations
+ * that may output multiple packets for a single encoded frame (e.g., lagged
+ * encoding) or if the application does not reset the buffer periodically.
+ *
+ * Applications may restore the default behavior of the codec providing
+ * the compressed data buffer by calling this function with a NULL
+ * buffer.
+ *
+ * Applications \ref MUSTNOT call this function during iteration of
+ * vpx_codec_get_cx_data().
+ *
+ * \param[in]    ctx         Pointer to this instance's context
+ * \param[in]    buf         Buffer to store compressed data into
+ * \param[in]    pad_before  Bytes to skip before writing compressed data
+ * \param[in]    pad_after   Bytes to skip after writing compressed data
+ *
+ * \retval #VPX_CODEC_OK
+ *     The buffer was set successfully.
+ * \retval #VPX_CODEC_INVALID_PARAM
+ *     A parameter was NULL, the image format is unsupported, etc.
+ */
+vpx_codec_err_t vpx_codec_set_cx_data_buf(vpx_codec_ctx_t *ctx,
+                                          const vpx_fixed_buf_t *buf,
+                                          unsigned int pad_before,
+                                          unsigned int pad_after);
 
-  /*!\brief Get global stream headers
-   *
-   * Retrieves a stream level global header packet, if supported by the codec.
-   *
-   * \param[in]    ctx     Pointer to this instance's context
-   *
-   * \retval NULL
-   *     Encoder does not support global header
-   * \retval Non-NULL
-   *     Pointer to buffer containing global header packet
-   */
-  vpx_fixed_buf_t *vpx_codec_get_global_headers(vpx_codec_ctx_t   *ctx);
+/*!\brief Encoded data iterator
+ *
+ * Iterates over a list of data packets to be passed from the encoder to the
+ * application. The different kinds of packets available are enumerated in
+ * #vpx_codec_cx_pkt_kind.
+ *
+ * #VPX_CODEC_CX_FRAME_PKT packets should be passed to the application's
+ * muxer. Multiple compressed frames may be in the list.
+ * #VPX_CODEC_STATS_PKT packets should be appended to a global buffer.
+ *
+ * The application \ref MUST silently ignore any packet kinds that it does
+ * not recognize or support.
+ *
+ * The data buffers returned from this function are only guaranteed to be
+ * valid until the application makes another call to any vpx_codec_* function.
+ *
+ * \param[in]     ctx      Pointer to this instance's context
+ * \param[in,out] iter     Iterator storage, initialized to NULL
+ *
+ * \return Returns a pointer to an output data packet (compressed frame data,
+ *         two-pass statistics, etc.) or NULL to signal end-of-list.
+ *
+ */
+const vpx_codec_cx_pkt_t *vpx_codec_get_cx_data(vpx_codec_ctx_t *ctx,
+                                                vpx_codec_iter_t *iter);
 
+/*!\brief Get Preview Frame
+ *
+ * Returns an image that can be used as a preview. Shows the image as it would
+ * exist at the decompressor. The application \ref MUST NOT write into this
+ * image buffer.
+ *
+ * \param[in]     ctx      Pointer to this instance's context
+ *
+ * \return Returns a pointer to a preview image, or NULL if no image is
+ *         available.
+ *
+ */
+const vpx_image_t *vpx_codec_get_preview_frame(vpx_codec_ctx_t *ctx);
 
-#define VPX_DL_REALTIME     (1)        /**< deadline parameter analogous to
-  *   VPx REALTIME mode. */
-#define VPX_DL_GOOD_QUALITY (1000000)  /**< deadline parameter analogous to
-  *   VPx GOOD QUALITY mode. */
-#define VPX_DL_BEST_QUALITY (0)        /**< deadline parameter analogous to
-  *   VPx BEST QUALITY mode. */
-  /*!\brief Encode a frame
-   *
-   * Encodes a video frame at the given "presentation time." The presentation
-   * time stamp (PTS) \ref MUST be strictly increasing.
-   *
-   * The encoder supports the notion of a soft real-time deadline. Given a
-   * non-zero value to the deadline parameter, the encoder will make a "best
-   * effort" guarantee to  return before the given time slice expires. It is
-   * implicit that limiting the available time to encode will degrade the
-   * output quality. The encoder can be given an unlimited time to produce the
-   * best possible frame by specifying a deadline of '0'. This deadline
-   * supercedes the VPx notion of "best quality, good quality, realtime".
-   * Applications that wish to map these former settings to the new deadline
-   * based system can use the symbols #VPX_DL_REALTIME, #VPX_DL_GOOD_QUALITY,
-   * and #VPX_DL_BEST_QUALITY.
-   *
-   * When the last frame has been passed to the encoder, this function should
-   * continue to be called, with the img parameter set to NULL. This will
-   * signal the end-of-stream condition to the encoder and allow it to encode
-   * any held buffers. Encoding is complete when vpx_codec_encode() is called
-   * and vpx_codec_get_cx_data() returns no data.
-   *
-   * \param[in]    ctx       Pointer to this instance's context
-   * \param[in]    img       Image data to encode, NULL to flush.
-   * \param[in]    pts       Presentation time stamp, in timebase units.
-   * \param[in]    duration  Duration to show frame, in timebase units.
-   * \param[in]    flags     Flags to use for encoding this frame.
-   * \param[in]    deadline  Time to spend encoding, in microseconds. (0=infinite)
-   *
-   * \retval #VPX_CODEC_OK
-   *     The configuration was populated.
-   * \retval #VPX_CODEC_INCAPABLE
-   *     Interface is not an encoder interface.
-   * \retval #VPX_CODEC_INVALID_PARAM
-   *     A parameter was NULL, the image format is unsupported, etc.
-   */
-  vpx_codec_err_t  vpx_codec_encode(vpx_codec_ctx_t            *ctx,
-                                    const vpx_image_t          *img,
-                                    vpx_codec_pts_t             pts,
-                                    unsigned long               duration,
-                                    vpx_enc_frame_flags_t       flags,
-                                    unsigned long               deadline);
-
-  /*!\brief Set compressed data output buffer
-   *
-   * Sets the buffer that the codec should output the compressed data
-   * into. This call effectively sets the buffer pointer returned in the
-   * next VPX_CODEC_CX_FRAME_PKT packet. Subsequent packets will be
-   * appended into this buffer. The buffer is preserved across frames,
-   * so applications must periodically call this function after flushing
-   * the accumulated compressed data to disk or to the network to reset
-   * the pointer to the buffer's head.
-   *
-   * `pad_before` bytes will be skipped before writing the compressed
-   * data, and `pad_after` bytes will be appended to the packet. The size
-   * of the packet will be the sum of the size of the actual compressed
-   * data, pad_before, and pad_after. The padding bytes will be preserved
-   * (not overwritten).
-   *
-   * Note that calling this function does not guarantee that the returned
-   * compressed data will be placed into the specified buffer. In the
-   * event that the encoded data will not fit into the buffer provided,
-   * the returned packet \ref MAY point to an internal buffer, as it would
-   * if this call were never used. In this event, the output packet will
-   * NOT have any padding, and the application must free space and copy it
-   * to the proper place. This is of particular note in configurations
-   * that may output multiple packets for a single encoded frame (e.g., lagged
-   * encoding) or if the application does not reset the buffer periodically.
-   *
-   * Applications may restore the default behavior of the codec providing
-   * the compressed data buffer by calling this function with a NULL
-   * buffer.
-   *
-   * Applications \ref MUSTNOT call this function during iteration of
-   * vpx_codec_get_cx_data().
-   *
-   * \param[in]    ctx         Pointer to this instance's context
-   * \param[in]    buf         Buffer to store compressed data into
-   * \param[in]    pad_before  Bytes to skip before writing compressed data
-   * \param[in]    pad_after   Bytes to skip after writing compressed data
-   *
-   * \retval #VPX_CODEC_OK
-   *     The buffer was set successfully.
-   * \retval #VPX_CODEC_INVALID_PARAM
-   *     A parameter was NULL, the image format is unsupported, etc.
-   */
-  vpx_codec_err_t vpx_codec_set_cx_data_buf(vpx_codec_ctx_t       *ctx,
-                                            const vpx_fixed_buf_t *buf,
-                                            unsigned int           pad_before,
-                                            unsigned int           pad_after);
-
-
-  /*!\brief Encoded data iterator
-   *
-   * Iterates over a list of data packets to be passed from the encoder to the
-   * application. The different kinds of packets available are enumerated in
-   * #vpx_codec_cx_pkt_kind.
-   *
-   * #VPX_CODEC_CX_FRAME_PKT packets should be passed to the application's
-   * muxer. Multiple compressed frames may be in the list.
-   * #VPX_CODEC_STATS_PKT packets should be appended to a global buffer.
-   *
-   * The application \ref MUST silently ignore any packet kinds that it does
-   * not recognize or support.
-   *
-   * The data buffers returned from this function are only guaranteed to be
-   * valid until the application makes another call to any vpx_codec_* function.
-   *
-   * \param[in]     ctx      Pointer to this instance's context
-   * \param[in,out] iter     Iterator storage, initialized to NULL
-   *
-   * \return Returns a pointer to an output data packet (compressed frame data,
-   *         two-pass statistics, etc.) or NULL to signal end-of-list.
-   *
-   */
-  const vpx_codec_cx_pkt_t *vpx_codec_get_cx_data(vpx_codec_ctx_t   *ctx,
-                                                  vpx_codec_iter_t  *iter);
-
-
-  /*!\brief Get Preview Frame
-   *
-   * Returns an image that can be used as a preview. Shows the image as it would
-   * exist at the decompressor. The application \ref MUST NOT write into this
-   * image buffer.
-   *
-   * \param[in]     ctx      Pointer to this instance's context
-   *
-   * \return Returns a pointer to a preview image, or NULL if no image is
-   *         available.
-   *
-   */
-  const vpx_image_t *vpx_codec_get_preview_frame(vpx_codec_ctx_t   *ctx);
-
-
-  /*!@} - end defgroup encoder*/
+/*!@} - end defgroup encoder*/
 #ifdef __cplusplus
 }
 #endif
 #endif  // VPX_VPX_ENCODER_H_
-

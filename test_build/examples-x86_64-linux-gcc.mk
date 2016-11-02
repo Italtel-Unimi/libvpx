@@ -17,7 +17,7 @@ MSVS_ARCH_DIR=
 CC=gcc
 CXX=g++
 AR=ar
-LD=/usr/local/cuda-7.5/bin/nvcc
+LD=/usr/local/cuda-8.0/bin/nvcc
 AS=yasm
 STRIP=strip
 NM=nm
@@ -25,7 +25,7 @@ NM=nm
 CFLAGS  =  -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdeclaration-after-statement -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wimplicit-function-declaration -Wuninitialized -Wunused
 CXXFLAGS  =  -m64 -DNDEBUG -O3 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -Wall -Wdisabled-optimization -Wpointer-arith -Wtype-limits -Wcast-qual -Wvla -Wuninitialized -Wunused
 ARFLAGS = -crs$(if $(quiet),,v)
-LDFLAGS =  -m64
+LDFLAGS =  -m64 -link -gencode arch=compute_52,code=compute_52 -gencode arch=compute_52,code=sm_52
 ASFLAGS =  -f elf64
 extralibs =  -lpthread
 AS_SFX    = .asm

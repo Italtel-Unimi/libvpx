@@ -93,7 +93,7 @@ typedef struct vpx_frames_GPU {
 	int 			num_MB_width;       // number of macro-blocks for width
 	int 			num_MB_height;      // number of macro-blocks for height
 	int				num_mv;				// number of motion vectors per frame (as no, == number of MB per frame)
-    int_mv	 		*MVs_g[3];          // gpu motion vectors
+        int_mv	 		*MVs_g[3];          // gpu motion vectors
 	int_mv			*MVs_split_g;		// gpu motion vectors (split) (*)
 	int				mbrow;				// row number of current mb	(for splitmv)
 	int				mbcol;				// col number of current mb	(for splitmv)
