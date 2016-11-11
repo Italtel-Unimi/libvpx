@@ -78,7 +78,7 @@ __inline__ __device__ uint32_t __vabsdiff4( uint32_t u, uint32_t v )
 
 
 __global__ void me_cuda_tex ( const cudaTextureObject_t in_tex, const cudaTextureObject_t ref_tex,
-				int const streamID, int const stride, int const width, int const num_MB_width, int const split_on,
+				int const streamID, int const streamSize, int const stride, int const width, int const num_MB_width, int const split_on,
 				int_mv * __restrict__ const MVs_g, int_mv * __restrict__ const MVs_split_g ) {
 
 	__shared__ uint32_t diff[128][32];
@@ -91,7 +91,7 @@ __global__ void me_cuda_tex ( const cudaTextureObject_t in_tex, const cudaTextur
 	int32_t TID = threadIdx.y * blockDim.x + threadIdx.x;	// Thread Index (0..32)
 	int32_t i, j;
 
-	int32_t MBoffset = streamID * 16 + blockIdx.x;
+	int32_t MBoffset = streamID * streamSize + blockIdx.x;
 	int32_t blockX = MBoffset % num_MB_width;		// colonna
 	int32_t blockY = MBoffset / num_MB_width;		// riga
 	// Occhio: immagine di riferimento ha cornice (larghezza tot = stride) mentre immagine input no (largh tot = width)
@@ -278,7 +278,7 @@ __global__ void me_cuda_tex ( const cudaTextureObject_t in_tex, const cudaTextur
 
 	// Salva mv 16x16
 	// Questo potrebbe essere fatto meglio, conj 25 thread che lavorano contemporaneamente,
-	// ma devo studiare come indicizzare l'accesso alla matrice globale.
+	// ma devo studiare come indicizzare l'accesso alla matrice globale. C'ho voglia?
 	if ( TID == 31 ) {
 		MVs_g[MBoffset].as_mv.row = (short)((MV_16x12_lookup_tex[ minpos[TID] ].row + iter_mv.row) * 8);
 		MVs_g[MBoffset].as_mv.col = (short)((MV_16x12_lookup_tex[ minpos[TID] ].col + iter_mv.col) * 8);
@@ -540,7 +540,7 @@ inline void me_kernel_launch_tex( VP8_COMMON * const common, const cudaTextureOb
 #endif
 
 	me_cuda_tex <<< common->GPU.gridDim, common->GPU.blockDim, 0, common->GPU.streams.frame[streamID] >>> (in_tex, ref_tex,
-			streamID, common->gpu_frame.stride, common->gpu_frame.width, common->gpu_frame.num_MB_width, split_on, MVs, MVs_split );
+			streamID, common->GPU.streamSize, common->gpu_frame.stride, common->gpu_frame.width, common->gpu_frame.num_MB_width, split_on, MVs, MVs_split );
 
 #if CUDA_VERBOSE
 	CHECK(cudaEventRecord(stop));
@@ -556,17 +556,20 @@ inline void me_kernel_launch_tex( VP8_COMMON * const common, const cudaTextureOb
 
 void me_cuda_launch_interleaved_tex( VP8_COMMON * const cm, int fb_idx, int ref_frame_flags ) {
 
-	int MV_size_16 = 16*sizeof(int_mv);
+	//int MV_size_16 = 16*sizeof(int_mv);
+	int MV_size_16 = cm->GPU.streamSize * sizeof(int_mv);
 	// for printing informations about reference frame flags and their usage, I left a commented prinft at line 3625
 	// at the beginning of encode_frame_to_data_rate(..) in onyx_if.c
 
-	for (int s = 0; s < cm->GPU.num_mb16th; s++) {
+	for (int t = 0; t < cm->GPU.num_mb16th; t++) {
 
-		int offset = 16*s;
+		int s = cm->GPU.streamLaunchOrder[t];
+		//int offset = 16*s;
+		int offset = cm->GPU.streamSize * s;
 		// bugfix per immagini il cui n di mb non e' divisibile per 16
 		// prima venivano lanciati troppi processi e cudaMemcpyAsync andava a leggere oltre i limiti degli array
-		if (offset + 16 > cm->gpu_frame.num_mv)
-			MV_size_16 = ( offset + 16 - cm->gpu_frame.num_mv ) * sizeof( int_mv );
+		if (offset + cm->GPU.streamSize > cm->gpu_frame.num_mv)
+			MV_size_16 = ( offset + cm->GPU.streamSize - cm->gpu_frame.num_mv ) * sizeof( int_mv );
 
 
 		if ((ref_frame_flags & GPUFLAG_LAST_FRAME) && (cm->yv12_fb[cm->lst_fb_idx].flags & GPUFLAG_LAST_FRAME)) {

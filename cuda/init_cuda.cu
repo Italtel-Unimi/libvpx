@@ -85,22 +85,28 @@ void init_cuda( void ) {
  * setup device grid, memory, streams, events, ...
  */
 void GPU_setup( GPU_config_t * GPU_config, int gpu_frame_width, int gpu_frame_height ) {
-	int H16th = ceil(gpu_frame_height/16.0);
-	int W16th = ceil(gpu_frame_width/16.0);
-	int num_mb16th = ceil(H16th*W16th/16.0);
+	int H16th = ceil( gpu_frame_height / 16.0 );
+	int W16th = ceil( gpu_frame_width / 16.0 );
+	GPU_config->streamSize = W16th * 2;		// Ogni riga e' presa in carico da uno stream. Per ora.
+	//int num_mb16th = ceil(H16th*W16th/16.0);
+	//int num_mb16th = ceil((H16th*W16th)/(float)W16th);
+	int num_mb16th = ceil( H16th * W16th / (float)GPU_config->streamSize );
 
 	// stream creation
-	GPU_config->streams.frame = (cudaStream_t *)malloc(num_mb16th*sizeof(cudaStream_t));
-	for (int i = 0; i < num_mb16th; i++)
-		CHECK(cudaStreamCreateWithFlags(&(GPU_config->streams.frame[i]),cudaStreamNonBlocking));
+	GPU_config->streams.frame     = (cudaStream_t *)malloc( num_mb16th * sizeof(cudaStream_t) );
+	GPU_config->streamLaunchOrder = (int *)malloc( num_mb16th * sizeof(int) );
+	for (int i = 0; i < num_mb16th; i++) {
+		CHECK(cudaStreamCreateWithFlags( &(GPU_config->streams.frame[i]), cudaStreamNonBlocking ));
+		GPU_config->streamLaunchOrder[i] = i;
+	}
 	GPU_config->num_mb16th = num_mb16th;
 
 	printf("\nNUM streams = %d\n", num_mb16th);
 	printf("H16: %d, W16: %d\n", H16th, W16th);
 
 	// event creation
-	CHECK(cudaEventCreate(&(GPU_config->events.start)));
-	CHECK(cudaEventCreate(&(GPU_config->events.stop)));
+	CHECK(cudaEventCreate( &(GPU_config->events.start) ));
+	CHECK(cudaEventCreate( &(GPU_config->events.stop) ));
 
 	//memory_setup_CPU_GPU();
 
@@ -168,7 +174,9 @@ void memory_setup_CPU_GPU( VP8_COMMON *cm ) {
 				CHECK( cudaCreateTextureObject( &(cm->gpu_frame.fbTex[i]), &(cm->gpu_frame.resDesc[i]), &(cm->gpu_frame.texDesc), &(cm->gpu_frame.resViewDesc) ) );
 			}
 
-			cm->GPU.gridDim = dim3(16,1,1);
+			//cm->GPU.gridDim = dim3(16,1,1);
+			//cm->GPU.gridDim = dim3(120, 1, 1);
+			cm->GPU.gridDim = dim3( cm->GPU.streamSize, 1, 1 );
 			cm->GPU.blockDim = dim3(4,8,1);
 			break;
 		case ME_FAST_KERNEL: {
@@ -180,7 +188,9 @@ void memory_setup_CPU_GPU( VP8_COMMON *cm ) {
 					CHECK(cudaMalloc( &(cm->gpu_frame.yv12_fb_g)[i], frame_size * sizeof(uint8_t) ));
 				}
 			}
-			cm->GPU.gridDim = dim3(16,1,1);
+			//cm->GPU.gridDim = dim3(16,1,1);
+			//cm->GPU.gridDim = dim3(120, 1, 1);
+			cm->GPU.gridDim = dim3( cm->GPU.streamSize, 1, 1 );
 			cm->GPU.blockDim = dim3(8,16,1);
 			break;
 		case ME_SPLITMV_KERNEL:	{
@@ -191,7 +201,9 @@ void memory_setup_CPU_GPU( VP8_COMMON *cm ) {
 				for ( int i = 0; i < NUM_YV12_BUFFERS; i++ ) {
 					CHECK(cudaMalloc( &(cm->gpu_frame.yv12_fb_g)[i], frame_size * sizeof(uint8_t) ));
 				}
-				cm->GPU.gridDim = dim3(16,1,1);
+				//cm->GPU.gridDim = dim3(16,1,1);
+				//cm->GPU.gridDim = dim3(120, 1, 1);
+				cm->GPU.gridDim = dim3( cm->GPU.streamSize, 1, 1 );
 				cm->GPU.blockDim = dim3(4,8,1);
 				break;
 			}
@@ -211,6 +223,8 @@ void GPU_destroy( VP8_COMMON *cm ) {
 		CHECK( cudaStreamDestroy( cm->GPU.streams.frame[i] ) );
 	}
 	free( cm->GPU.streams.frame );
+	if (cm->GPU.multiThreadEnabled)
+		free( cm->GPU.streamLaunchOrder );
 
 	// Destroy cudaEvents
 	CHECK( cudaEventDestroy( cm->GPU.events.stop  ) );
@@ -246,6 +260,40 @@ void GPU_destroy( VP8_COMMON *cm ) {
 
 	printf("calling cudaDeviceReset()\n");
 	cudaDeviceReset();
+}
+
+void GPUstreamReorder( VP8_COMMON * const cm ) {
+	int nStreams  = cm->GPU.num_mb16th;
+	int * strm    = cm->GPU.streamLaunchOrder;
+	int mbW       = cm->gpu_frame.num_MB_width;
+	int mbH       = cm->gpu_frame.num_MB_height;
+	int streamSz = cm->GPU.streamSize;
+	int nthreads = cm->GPU.nEncodingThreads + 1;
+
+	int id = 0;
+	int multip = mbW / streamSz;					// Numero di stream interessati da un CPU thread
+	int streamPacket = (mbW * nthreads) / streamSz;	// Numero di stream interessati da tutti i CPU thread
+
+	if (streamSz <= mbW) {
+		int i;
+		for (i = 0; i < ceil( mbH / (float)nthreads ); i++) {
+			if (((i + 1) * streamPacket) > nStreams)	// gestisce ultimo pacchettino di stream [vedi sotto]
+				break;
+			for (int k = 0; k < streamPacket; k++) {
+				if (id < nStreams)
+					strm[id++] = (k * multip) % streamPacket + k / nthreads + i * streamPacket;
+			}
+		}
+		for (int k = i * streamPacket; k < nStreams; k++)	// Stream avanzati, assegnati sequenzialmente
+			strm[id] = id++;
+
+	} else {
+		for (int i = 0; i < nStreams; i++)
+			strm[i] = i;
+	}
+	printf( "nstreams = %d  --  id = %d\n", nStreams, id );
+	for (int i = 0; i < nStreams; i++)
+		printf( "%d ", strm[i] );
 }
 
 

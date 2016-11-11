@@ -1021,8 +1021,8 @@ static void rd_check_segment(VP8_COMP *cpi, MACROBLOCK *x, BEST_SEG_INFO *bsi,
 
       if (this_mode == NEW4X4) {
 #if HAVE_CUDA_ENABLED_DEVICE
-            	// Questo deve girare se viene richiesta ME su cpu
-                if (cpi->oxcf.cuda_me_enabled == 0) {
+    	// Questo deve girare se viene richiesta ME su cpu
+        if (cpi->oxcf.cuda_me_enabled == 0) {
 #endif
         int sseshift;
         int num00;
@@ -1141,7 +1141,9 @@ static void rd_check_segment(VP8_COMP *cpi, MACROBLOCK *x, BEST_SEG_INFO *bsi,
 
 						mb_row = cpi->common.gpu_frame.mbrow;
 						mb_col = cpi->common.gpu_frame.mbcol;
-						streamID = (mb_row * cpi->common.gpu_frame.num_MB_width + mb_col) >> 4;     // streamID to sync
+						//streamID = (mb_row * cpi->common.gpu_frame.num_MB_width + mb_col) >> 4;     // streamID to sync
+                        //streamID = mb_row;
+                        streamID = (mb_row * cpi->common.gpu_frame.num_MB_width + mb_col) / cpi->common.GPU.streamSize;     // streamID to sync
 						GPU_sync_stream_frame(&(cpi->common), streamID);      // sync on next stream
 
 						mb_offset = mb_row*cpi->common.mb_cols+mb_col;
@@ -2204,7 +2206,10 @@ void vp8_rd_pick_inter_mode(VP8_COMP *cpi, MACROBLOCK *x, int recon_yoffset,
                 int streamID, mb_offset;
                 int_mv mv_from_gpu;
 
-				streamID = (mb_row * cpi->common.gpu_frame.num_MB_width + mb_col) >> 4;     // streamID to sync
+				//streamID = (mb_row * cpi->common.gpu_frame.num_MB_width + mb_col) >> 4;     // streamID to sync
+                //streamID = mb_row;
+                streamID = (mb_row * cpi->common.gpu_frame.num_MB_width + mb_col) / cpi->common.GPU.streamSize;
+        //printf( "mb_row: %d - mb_col: %d - id: %d - wblocks: %d - streamSize: %d\n", mb_row, mb_col, streamID, cpi->common.gpu_frame.num_MB_width, cpi->common.GPU.streamSize );
 				GPU_sync_stream_frame(&(cpi->common), streamID);      // sync on next stream
 				mb_offset = mb_row*cpi->common.mb_cols+mb_col;
 

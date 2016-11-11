@@ -24,15 +24,15 @@ extern "C" {
 
 // public kernels
 __global__ void me_cuda_fast (const uint8_t * __restrict__ const in_frame, const uint8_t * __restrict__ const ref_frame,
-				int const streamID, int const stride, int const width, int const num_MB_width,
+				int const streamID, int const streamSize, int const stride, int const width, int const num_MB_width,
 				int_mv * __restrict__ const MVs_g );
 
 __global__ void me_cuda_split (const uint8_t * __restrict__ const in_frame, const uint8_t * __restrict__ const ref_frame,
-		int const streamID, int const stride, int const width, int const num_MB_width, int const split_on,
+		int const streamID, int const streamSize, int const stride, int const width, int const num_MB_width, int const split_on,
 		int_mv * __restrict__ const MVs_g, int_mv * __restrict__ const MVs_split_g );
 
 __global__ void me_cuda_tex ( const cudaTextureObject_t in_tex, const cudaTextureObject_t ref_tex,
-				int const streamID, int const stride, int const width, int const num_MB_width, int const split_on,
+				int const streamID, int const streamSize, int const stride, int const width, int const num_MB_width, int const split_on,
 				int_mv * __restrict__ const MVs_g, int_mv * __restrict__ const MVs_split_g );
 
 

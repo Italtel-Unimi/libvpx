@@ -2050,6 +2050,12 @@ struct VP8_COMP *vp8_create_compressor(VP8_CONFIG *oxcf) {
 	setup_constant_mem_fast(cm->gpu_frame.stride);
 	setup_constant_mem_split(cm->gpu_frame.stride);
 
+    if (cpi->b_multi_threaded) {
+        cm->GPU.nEncodingThreads   = cpi->encoding_thread_count;
+        cm->GPU.multiThreadEnabled = cpi->b_multi_threaded;
+        printf( "Multithread on: %d - Total encoding thread count: %d\n", cm->GPU.multiThreadEnabled, cm->GPU.nEncodingThreads );
+        GPUstreamReorder( cm );
+    }
   }
 #endif
 

@@ -22,6 +22,7 @@ void init_cuda(void);
 void GPU_setup( GPU_config_t * GPU_config, int gpu_frame_width, int gpu_frame_height );
 void memory_setup_CPU_GPU( VP8_COMMON *cm );
 void GPU_destroy( VP8_COMMON *cm );
+void GPUstreamReorder( VP8_COMMON * const cm );
 
 
 #ifdef __cplusplus
