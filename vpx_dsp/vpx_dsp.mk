@@ -48,6 +48,7 @@ DSP_SRCS-$(HAVE_SSSE3) += x86/vpx_subpixel_8t_ssse3.asm
 ifeq ($(CONFIG_VP9_HIGHBITDEPTH),yes)
 DSP_SRCS-$(HAVE_SSE)  += x86/highbd_intrapred_sse2.asm
 DSP_SRCS-$(HAVE_SSE2) += x86/highbd_intrapred_sse2.asm
+DSP_SRCS-$(HAVE_NEON) += arm/highbd_intrapred_neon.c
 endif  # CONFIG_VP9_HIGHBITDEPTH
 
 ifneq ($(filter yes,$(CONFIG_POSTPROC) $(CONFIG_VP9_POSTPROC)),)
@@ -212,7 +213,7 @@ endif  # HAVE_NEON
 endif  # HAVE_NEON_ASM
 DSP_SRCS-$(HAVE_NEON)  += arm/idct16x16_neon.c
 DSP_SRCS-$(HAVE_NEON)  += arm/idct32x32_add_neon.c
-DSP_SRCS-$(HAVE_NEON)  += arm/idct32x32_34_add_neon.c
+DSP_SRCS-$(HAVE_NEON)  += arm/idct32x32_135_add_neon.c
 
 DSP_SRCS-$(HAVE_MSA)   += mips/inv_txfm_msa.h
 DSP_SRCS-$(HAVE_MSA)   += mips/idct4x4_msa.c
@@ -244,6 +245,7 @@ DSP_SRCS-$(HAVE_NEON) += arm/idct16x16_1_add_neon.c
 endif  # HAVE_NEON_ASM
 DSP_SRCS-$(HAVE_NEON) += arm/idct_neon.h
 DSP_SRCS-$(HAVE_NEON) += arm/idct32x32_1_add_neon.c
+DSP_SRCS-$(HAVE_NEON) += arm/idct32x32_34_add_neon.c
 
 endif  # CONFIG_VP9
 
@@ -252,6 +254,7 @@ ifeq ($(CONFIG_VP9_ENCODER),yes)
 DSP_SRCS-yes            += quantize.c
 DSP_SRCS-yes            += quantize.h
 
+DSP_SRCS-$(HAVE_SSE2)   += x86/fdct.h
 DSP_SRCS-$(HAVE_SSE2)   += x86/quantize_sse2.c
 ifeq ($(CONFIG_VP9_HIGHBITDEPTH),yes)
 DSP_SRCS-$(HAVE_SSE2)   += x86/highbd_quantize_intrin_sse2.c

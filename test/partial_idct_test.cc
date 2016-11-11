@@ -32,6 +32,38 @@ typedef void (*InvTxfmFunc)(const tran_low_t *in, uint8_t *out, int stride);
 typedef std::tr1::tuple<FwdTxfmFunc, InvTxfmFunc, InvTxfmFunc, TX_SIZE, int>
     PartialInvTxfmParam;
 const int kMaxNumCoeffs = 1024;
+
+// https://bugs.chromium.org/p/webm/issues/detail?id=1332
+// The functions specified do not pass with INT16_MIN/MAX. They fail at the
+// value specified, but pass when 1 is added/subtracted.
+int16_t MaxSupportedCoeff(InvTxfmFunc a) {
+#if HAVE_SSSE3 && ARCH_X86_64 && !CONFIG_VP9_HIGHBITDEPTH && \
+    !CONFIG_EMULATE_HARDWARE
+  if (a == vpx_idct8x8_64_add_ssse3 || a == vpx_idct8x8_12_add_ssse3) {
+    return 23625 - 1;
+  }
+#else
+  (void)a;
+#endif
+  return INT16_MAX;
+}
+
+int16_t MinSupportedCoeff(InvTxfmFunc a) {
+  (void)a;
+#if !CONFIG_EMULATE_HARDWARE
+#if HAVE_SSSE3 && ARCH_X86_64 && !CONFIG_VP9_HIGHBITDEPTH
+  if (a == vpx_idct8x8_64_add_ssse3 || a == vpx_idct8x8_12_add_ssse3) {
+    return -23625 + 1;
+  }
+#elif HAVE_NEON
+  if (a == vpx_idct4x4_16_add_neon) {
+    return INT16_MIN + 1;
+  }
+#endif
+#endif  // !CONFIG_EMULATE_HARDWARE
+  return INT16_MIN;
+}
+
 class PartialIDctTest : public ::testing::TestWithParam<PartialInvTxfmParam> {
  public:
   virtual ~PartialIDctTest() {}
@@ -142,14 +174,14 @@ TEST_P(PartialIDctTest, ResultsMatch) {
     memset(output_block_ref_, 0, sizeof(*output_block_ref_) * block_size_);
     int max_energy_leftover = max_coeff * max_coeff;
     for (int j = 0; j < last_nonzero_; ++j) {
-      int16_t coef = static_cast<int16_t>(sqrt(1.0 * max_energy_leftover) *
-                                          (rnd.Rand16() - 32768) / 65536);
-      max_energy_leftover -= coef * coef;
+      int16_t coeff = static_cast<int16_t>(sqrt(1.0 * max_energy_leftover) *
+                                           (rnd.Rand16() - 32768) / 65536);
+      max_energy_leftover -= coeff * coeff;
       if (max_energy_leftover < 0) {
         max_energy_leftover = 0;
-        coef = 0;
+        coeff = 0;
       }
-      input_block_[vp9_default_scan_orders[tx_size_].scan[j]] = coef;
+      input_block_[vp9_default_scan_orders[tx_size_].scan[j]] = coeff;
     }
 
     ASM_REGISTER_STATE_CHECK(
@@ -184,6 +216,33 @@ TEST_P(PartialIDctTest, AddOutputBlock) {
     ASSERT_EQ(0, memcmp(output_block_ref_, output_block_,
                         sizeof(*output_block_) * block_size_))
         << "Error: Transform results are not correctly added to output.";
+  }
+}
+
+TEST_P(PartialIDctTest, SingleLargeCoeff) {
+  ACMRandom rnd(ACMRandom::DeterministicSeed());
+  const int16_t max_coeff = MaxSupportedCoeff(partial_itxfm_);
+  const int16_t min_coeff = MinSupportedCoeff(partial_itxfm_);
+  for (int i = 0; i < last_nonzero_; ++i) {
+    memset(input_block_, 0, sizeof(*input_block_) * block_size_);
+    // Run once for min and once for max.
+    for (int j = 0; j < 2; ++j) {
+      const int coeff = j ? min_coeff : max_coeff;
+
+      memset(output_block_, 0, sizeof(*output_block_) * block_size_);
+      memset(output_block_ref_, 0, sizeof(*output_block_ref_) * block_size_);
+      input_block_[vp9_default_scan_orders[tx_size_].scan[i]] = coeff;
+
+      ASM_REGISTER_STATE_CHECK(
+          full_itxfm_(input_block_, output_block_ref_, size_));
+      ASM_REGISTER_STATE_CHECK(
+          partial_itxfm_(input_block_, output_block_, size_));
+
+      ASSERT_EQ(0, memcmp(output_block_ref_, output_block_,
+                          sizeof(*output_block_) * block_size_))
+          << "Error: Fails with single coeff of " << coeff << " at " << i
+          << ".";
+    }
   }
 }
 using std::tr1::make_tuple;
@@ -221,20 +280,27 @@ INSTANTIATE_TEST_CASE_P(
     NEON, PartialIDctTest,
     ::testing::Values(make_tuple(&vpx_fdct32x32_c, &vpx_idct32x32_1024_add_c,
                                  &vpx_idct32x32_1_add_neon, TX_32X32, 1),
+                      make_tuple(&vpx_fdct32x32_c, &vpx_idct32x32_1024_add_c,
+                                 &vpx_idct32x32_34_add_neon, TX_32X32, 34),
                       make_tuple(&vpx_fdct16x16_c, &vpx_idct16x16_256_add_c,
                                  &vpx_idct16x16_1_add_neon, TX_16X16, 1),
                       make_tuple(&vpx_fdct8x8_c, &vpx_idct8x8_64_add_c,
+                                 &vpx_idct8x8_64_add_neon, TX_8X8, 64),
+                      make_tuple(&vpx_fdct8x8_c, &vpx_idct8x8_64_add_c,
+                                 &vpx_idct8x8_12_add_neon, TX_8X8, 12),
+                      make_tuple(&vpx_fdct8x8_c, &vpx_idct8x8_64_add_c,
                                  &vpx_idct8x8_1_add_neon, TX_8X8, 1),
+                      make_tuple(&vpx_fdct4x4_c, &vpx_idct4x4_16_add_c,
+                                 &vpx_idct4x4_16_add_neon, TX_4X4, 16),
                       make_tuple(&vpx_fdct4x4_c, &vpx_idct4x4_16_add_c,
                                  &vpx_idct4x4_1_add_neon, TX_4X4, 1)));
 #else   // !CONFIG_VP9_HIGHBITDEPTH
-// 32x32_135_ is implemented using the 1024 version.
 INSTANTIATE_TEST_CASE_P(
     NEON, PartialIDctTest,
     ::testing::Values(make_tuple(&vpx_fdct32x32_c, &vpx_idct32x32_1024_add_c,
                                  &vpx_idct32x32_1024_add_neon, TX_32X32, 1024),
                       make_tuple(&vpx_fdct32x32_c, &vpx_idct32x32_1024_add_c,
-                                 &vpx_idct32x32_1024_add_neon, TX_32X32, 135),
+                                 &vpx_idct32x32_135_add_neon, TX_32X32, 135),
                       make_tuple(&vpx_fdct32x32_c, &vpx_idct32x32_1024_add_c,
                                  &vpx_idct32x32_34_add_neon, TX_32X32, 34),
                       make_tuple(&vpx_fdct32x32_c, &vpx_idct32x32_1024_add_c,
